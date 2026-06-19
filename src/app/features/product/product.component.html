@@ -1,0 +1,118 @@
+<section class="feature-heading">
+  <div>
+    <span class="eyebrow">SHOWROOM CATALOG</span>
+    <h1>Bike Inventory</h1>
+    <p>Add motorcycle models and opening showroom stock.</p>
+  </div>
+</section>
+
+<div class="product-layout">
+  <section class="product-form-card glass-card">
+    <div class="company-title">
+      <span class="dealer-mark"><mat-icon>two_wheeler</mat-icon></span>
+      <div>
+        <strong>Mari Honda Motors</strong>
+        <small>Premium motorcycle dealership</small>
+      </div>
+    </div>
+
+    <div class="product-id">
+      <span>Bike ID</span>
+      <strong>MHM-{{ nextBikeId().toString().padStart(3, '0') }}</strong>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="addBike()">
+      <div class="form-control">
+        <label class="field-label" for="bike-name">Bike Name</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-icon matPrefix>two_wheeler</mat-icon>
+          <input id="bike-name" matInput formControlName="bikeName" placeholder="e.g. Honda CG 125" />
+          @if (form.controls.bikeName.touched && form.controls.bikeName.invalid) {
+            <mat-error>Bike name is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="quantity-row">
+        <div class="form-control">
+          <label class="field-label" for="model-year">Model Year</label>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>calendar_month</mat-icon><input id="model-year" matInput type="number" formControlName="modelYear" /></mat-form-field>
+        </div>
+        <div class="form-control">
+          <label class="field-label" for="engine-cc">Engine CC</label>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>speed</mat-icon><input id="engine-cc" matInput type="number" formControlName="engineCc" /></mat-form-field>
+        </div>
+      </div>
+      <div class="form-control">
+        <label class="field-label" for="bike-color">Color</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>palette</mat-icon><input id="bike-color" matInput formControlName="color" placeholder="Red, Black, Silver" /></mat-form-field>
+      </div>
+      <div class="quantity-row">
+        <div class="form-control">
+          <label class="field-label" for="purchase-price">Purchase Price</label>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>payments</mat-icon><input id="purchase-price" matInput type="number" formControlName="purchasePrice" /></mat-form-field>
+        </div>
+        <div class="form-control">
+          <label class="field-label" for="sale-price">Sale Price</label>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>sell</mat-icon><input id="sale-price" matInput type="number" formControlName="salePrice" /></mat-form-field>
+        </div>
+      </div>
+      <div class="form-control">
+        <label class="field-label" for="stock-quantity">Stock Quantity</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>inventory_2</mat-icon><input id="stock-quantity" matInput type="number" formControlName="openingQuantity" /></mat-form-field>
+      </div>
+
+      <button mat-flat-button class="dealer-button" type="submit">
+        <mat-icon>add_circle</mat-icon>
+        Add Bike
+      </button>
+    </form>
+  </section>
+
+  <section class="product-list glass-card">
+    <div class="section-title">
+      <div><span>BIKE CATALOG</span><h2>Current Models</h2></div>
+      <strong>{{ bikeService.bikes().length }}</strong>
+    </div>
+
+    <div class="table-wrap">
+      <table mat-table [dataSource]="bikeService.bikes()">
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let row; let i = index">#{{ (i + 1).toString().padStart(3, '0') }}</td>
+        </ng-container>
+        <ng-container matColumnDef="bike">
+          <th mat-header-cell *matHeaderCellDef>Bike Name</th>
+          <td mat-cell *matCellDef="let row"><strong>{{ row.bikeName }}</strong></td>
+        </ng-container>
+        <ng-container matColumnDef="year"><th mat-header-cell *matHeaderCellDef>Year</th><td mat-cell *matCellDef="let row">{{ row.modelYear }}</td></ng-container>
+        <ng-container matColumnDef="engine"><th mat-header-cell *matHeaderCellDef>Engine</th><td mat-cell *matCellDef="let row">{{ row.engineCc }} CC</td></ng-container>
+        <ng-container matColumnDef="color"><th mat-header-cell *matHeaderCellDef>Color</th><td mat-cell *matCellDef="let row">{{ row.color }}</td></ng-container>
+        <ng-container matColumnDef="purchase"><th mat-header-cell *matHeaderCellDef>Purchase</th><td mat-cell *matCellDef="let row">{{ row.purchasePrice | currency:'PKR ':'symbol':'1.0-0' }}</td></ng-container>
+        <ng-container matColumnDef="sale"><th mat-header-cell *matHeaderCellDef>Sale</th><td mat-cell *matCellDef="let row">{{ row.salePrice | currency:'PKR ':'symbol':'1.0-0' }}</td></ng-container>
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef>Stock Qty</th>
+          <td mat-cell *matCellDef="let row">{{ row.openingQuantity }}</td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let row">
+            <button mat-icon-button class="delete-button" (click)="removeBike(row.id, row.bikeName)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+
+    @if (!bikeService.bikes().length) {
+      <div class="empty-state">
+        <mat-icon>two_wheeler</mat-icon>
+        <h3>No bike models yet</h3>
+        <p>Use the form to add your first showroom bike.</p>
+      </div>
+    }
+  </section>
+</div>

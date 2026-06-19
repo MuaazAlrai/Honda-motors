@@ -1,0 +1,140 @@
+<section class="expense-heading">
+  <div>
+    <span class="eyebrow">OPERATING COSTS</span>
+    <h1>Expenses</h1>
+    <p>Track &amp; manage your expenses</p>
+  </div>
+  <div class="expense-badge"><mat-icon>monitoring</mat-icon> Net revenue updates instantly</div>
+</section>
+
+<div class="expense-grid">
+  <section class="expense-form glass-card">
+    <div class="card-heading">
+      <span class="heading-icon"><mat-icon>add_card</mat-icon></span>
+      <div>
+        <h2>Add Expense</h2>
+        <p>Record a business operating cost</p>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="saveExpense()">
+      <mat-form-field appearance="outline" floatLabel="always">
+        <mat-label>Expense Title</mat-label>
+        <mat-icon matPrefix>edit_note</mat-icon>
+        <input matInput formControlName="title" placeholder="e.g. Office rent" />
+        @if (form.controls.title.touched && form.controls.title.invalid) {
+          <mat-error>Expense title is required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" floatLabel="always">
+        <mat-label>Amount (Rs)</mat-label>
+        <mat-icon matPrefix>payments</mat-icon>
+        <input matInput type="number" formControlName="amount" />
+        @if (form.controls.amount.touched && form.controls.amount.invalid) {
+          <mat-error>Enter a valid amount</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" floatLabel="always">
+        <mat-label>Category</mat-label>
+        <mat-icon matPrefix>category</mat-icon>
+        <mat-select formControlName="category">
+          @for (category of categories; track category) {
+            <mat-option [value]="category">{{ category }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button class="save-button" type="submit">
+        <mat-icon>check_circle</mat-icon>
+        Save Expense
+      </button>
+    </form>
+  </section>
+
+  <aside class="today-column">
+    <div class="today-title">
+      <div><span>TODAY</span><h2>Today's Expenses</h2></div>
+      <strong>{{ expensesService.todayExpenses().length }}</strong>
+    </div>
+
+    <div class="expense-cards">
+      @for (expense of expensesService.todayExpenses().slice(0, 4); track expense.id) {
+        <article class="expense-card glass-card">
+          <span class="category-icon"><mat-icon>{{ categoryIcon(expense.category) }}</mat-icon></span>
+          <div class="expense-copy">
+            <strong>{{ expense.title }}</strong>
+            <span>{{ expense.category }}</span>
+          </div>
+          <b>{{ expense.amount | currency:'PKR ':'symbol':'1.0-0' }}</b>
+        </article>
+      } @empty {
+        <div class="today-empty glass-card">
+          <mat-icon>receipt_long</mat-icon>
+          <h3>No expenses today</h3>
+          <p>Today's operating costs will appear here.</p>
+        </div>
+      }
+    </div>
+
+    <article class="today-total glass-card">
+      <span><mat-icon>account_balance_wallet</mat-icon></span>
+      <div>
+        <small>Total Spent Today</small>
+        <strong>{{ expensesService.todayTotal() | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+      </div>
+    </article>
+  </aside>
+</div>
+
+<section class="expense-history glass-card">
+  <div class="section-heading">
+    <div><span>EXPENSE LEDGER</span><h2>Expense History</h2></div>
+    <div class="history-total">
+      <small>All-time total</small>
+      <strong>{{ expensesService.allTimeTotal() | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table mat-table [dataSource]="expensesService.expenses()">
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef>Date</th>
+        <td mat-cell *matCellDef="let row">{{ row.date | date:'mediumDate' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Expense</th>
+        <td mat-cell *matCellDef="let row"><strong>{{ row.title }}</strong></td>
+      </ng-container>
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef>Category</th>
+        <td mat-cell *matCellDef="let row">
+          <span class="category-pill"><mat-icon>{{ categoryIcon(row.category) }}</mat-icon>{{ row.category }}</span>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="amount">
+        <th mat-header-cell *matHeaderCellDef>Amount</th>
+        <td mat-cell *matCellDef="let row" class="amount-value">{{ row.amount | currency:'PKR ' }}</td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button class="delete-button" (click)="deleteExpense(row.id, row.title)">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+
+  @if (!expensesService.expenses().length) {
+    <div class="history-empty">
+      <mat-icon>money_off</mat-icon>
+      <h3>No expense history</h3>
+      <p>Saved expenses will appear here and reduce net revenue.</p>
+    </div>
+  }
+</section>

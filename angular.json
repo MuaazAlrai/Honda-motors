@@ -2,11 +2,12 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "07513811-857f-4e1e-88df-9e470ac42424"
   },
   "newProjectRoot": "projects",
   "projects": {
-    "my-app": {
+    "tahir-bashir-erp": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -24,21 +25,19 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ]
+            "styles": ["src/material-theme.scss", "src/styles.css"]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
+                  "maximumWarning": "6kB",
                   "maximumError": "8kB"
                 }
               ],
@@ -56,10 +55,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "my-app:build:production"
+              "buildTarget": "tahir-bashir-erp:build:production"
             },
             "development": {
-              "buildTarget": "my-app:build:development"
+              "buildTarget": "tahir-bashir-erp:build:development"
             }
           },
           "defaultConfiguration": "development"

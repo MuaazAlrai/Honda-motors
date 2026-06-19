@@ -1,0 +1,9 @@
+import { Bike } from '../../core/models/bike.model';
+
+export interface StockItem extends Bike {
+  purchasedQuantity: number;
+  soldQuantity: number;
+  availableStock: number;
+  averagePurchasePrice: number;
+  inventoryValue: number;
+}

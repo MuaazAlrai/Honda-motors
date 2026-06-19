@@ -1,0 +1,149 @@
+<main class="auth-shell">
+  <section class="brand-panel" aria-label="Mari Honda Motors">
+    <img src="/images/mari-honda-logo.png" alt="Mari Honda Motors" />
+    <div>
+      <span class="eyebrow">DEALERSHIP ERP</span>
+      <h1>Mari Honda Motors</h1>
+      <p>Inventory, sales, purchases, expenses, and profit in one secure workspace.</p>
+    </div>
+    <div class="showroom-status"><span></span> Showroom management online</div>
+  </section>
+
+  <section class="form-panel">
+    <div class="auth-card">
+      <div class="auth-heading">
+        <span class="eyebrow">{{ isLogin ? 'WELCOME BACK' : 'CREATE ACCOUNT' }}</span>
+        <h2>{{ isLogin ? 'Sign in to your workspace' : 'Register your account' }}</h2>
+        <p>{{ isLogin ? 'Enter your details to continue.' : 'Set up access to Mari Honda Motors ERP.' }}</p>
+      </div>
+
+      @if (message) {
+        <div class="form-message" [class.success]="messageType === 'success'" role="alert">
+          <mat-icon>{{ messageType === 'success' ? 'check_circle' : 'error' }}</mat-icon>
+          <span>{{ message }}</span>
+        </div>
+      }
+
+      @if (isLogin) {
+        <form [formGroup]="loginForm" (ngSubmit)="login()" autocomplete="off" novalidate>
+          <div class="form-field">
+            <label for="login-email">Email address</label>
+            <div class="input-wrap">
+              <mat-icon>mail</mat-icon>
+              <input id="login-email" name="login-email-new" type="email" formControlName="email" autocomplete="new-email" autocapitalize="none" spellcheck="false" placeholder="name@example.com" />
+            </div>
+            @if (loginForm.controls['email'].touched && loginForm.controls['email'].invalid) {
+              <small class="error">Enter a valid email address.</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="login-password">Password</label>
+            <div class="input-wrap">
+              <mat-icon>lock</mat-icon>
+              <input
+                id="login-password"
+                [type]="showLoginPassword ? 'text' : 'password'"
+                formControlName="password"
+                name="login-password-new"
+                autocomplete="new-password"
+                placeholder="At least 6 characters"
+              />
+              <button
+                type="button"
+                class="visibility-button"
+                [attr.aria-label]="showLoginPassword ? 'Hide password' : 'Show password'"
+                [title]="showLoginPassword ? 'Hide password' : 'Show password'"
+                (click)="showLoginPassword = !showLoginPassword"
+              >
+                <mat-icon>{{ showLoginPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
+            @if (loginForm.controls['password'].touched && loginForm.controls['password'].invalid) {
+              <small class="error">Password must contain at least 6 characters.</small>
+            }
+          </div>
+
+          <button type="button" class="forgot-password" [disabled]="isSubmitting" (click)="resetPassword()">
+            Forgot password?
+          </button>
+
+          <label class="remember-me">
+            <input type="checkbox" formControlName="rememberMe" />
+            <span>Remember me</span>
+          </label>
+
+          <button mat-flat-button color="primary" class="submit-button" type="submit" [disabled]="isSubmitting">
+            <mat-icon [class.loading-hidden]="isSubmitting">login</mat-icon>
+            <span class="button-spinner" [class.loading-hidden]="!isSubmitting" aria-hidden="true"></span>
+            <span>{{ isSubmitting ? 'Signing in' : 'Sign in' }}</span>
+          </button>
+        </form>
+      } @else {
+        <form [formGroup]="registerForm" (ngSubmit)="register()" novalidate>
+          <div class="form-field">
+            <label for="register-email">Email address</label>
+            <div class="input-wrap">
+              <mat-icon>mail</mat-icon>
+              <input id="register-email" type="email" formControlName="email" autocomplete="email" placeholder="name@example.com" />
+            </div>
+            @if (registerForm.controls['email'].touched && registerForm.controls['email'].invalid) {
+              <small class="error">Enter a valid email address.</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="register-password">Password</label>
+            <div class="input-wrap">
+              <mat-icon>lock</mat-icon>
+              <input
+                id="register-password"
+                [type]="showRegisterPassword ? 'text' : 'password'"
+                formControlName="password"
+                autocomplete="new-password"
+                placeholder="At least 6 characters"
+              />
+              <button type="button" class="visibility-button" [attr.aria-label]="showRegisterPassword ? 'Hide password' : 'Show password'" [title]="showRegisterPassword ? 'Hide password' : 'Show password'" (click)="showRegisterPassword = !showRegisterPassword">
+                <mat-icon>{{ showRegisterPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
+            @if (registerForm.controls['password'].touched && registerForm.controls['password'].invalid) {
+              <small class="error">Use at least 6 characters.</small>
+            }
+          </div>
+
+          <div class="form-field">
+            <label for="confirm-password">Confirm password</label>
+            <div class="input-wrap">
+              <mat-icon>verified_user</mat-icon>
+              <input
+                id="confirm-password"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                placeholder="Repeat your password"
+              />
+              <button type="button" class="visibility-button" [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'" [title]="showConfirmPassword ? 'Hide password' : 'Show password'" (click)="showConfirmPassword = !showConfirmPassword">
+                <mat-icon>{{ showConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </div>
+            @if (registerForm.controls['confirmPassword'].touched && registerForm.controls['confirmPassword'].invalid) {
+              <small class="error">{{ registerForm.controls['confirmPassword'].hasError('passwordMismatch') ? 'Passwords do not match.' : 'Confirm your password.' }}</small>
+            }
+          </div>
+
+          <button mat-flat-button color="primary" class="submit-button" type="submit" [disabled]="isSubmitting">
+            <mat-icon [class.loading-hidden]="isSubmitting">person_add</mat-icon>
+            <span class="button-spinner" [class.loading-hidden]="!isSubmitting" aria-hidden="true"></span>
+            <span>{{ isSubmitting ? 'Creating account' : 'Create account' }}</span>
+          </button>
+        </form>
+      }
+
+      <div class="switch-mode">
+        <span>{{ isLogin ? "Don't have an account?" : 'Already have an account?' }}</span>
+        <button type="button" (click)="switchMode()">{{ isLogin ? 'Register' : 'Sign in' }}</button>
+      </div>
+    </div>
+  </section>
+</main>

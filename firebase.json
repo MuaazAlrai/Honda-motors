@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": "dist/tahir-bashir-erp/browser",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

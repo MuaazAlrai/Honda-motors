@@ -1,0 +1,115 @@
+<section class="profit-heading">
+  <div>
+    <span class="eyebrow">BUSINESS PERFORMANCE</span>
+    <h1>Profit Overview</h1>
+    <p>Daily and monthly net-profit summary</p>
+  </div>
+  <div class="formula-badge">
+    <mat-icon>calculate</mat-icon>
+    Net profit = Gross profit − Expenses
+  </div>
+</section>
+
+<section class="period-grid">
+  <article class="period-card today-card glass-card">
+    <header>
+      <span class="period-icon"><mat-icon>light_mode</mat-icon></span>
+      <div><small>CURRENT PERIOD</small><h2>Today</h2></div>
+      <span class="status-dot">Live</span>
+    </header>
+
+    <div class="net-profit" [class.loss]="profitService.today().netProfit < 0">
+      <small>Net Profit</small>
+      <strong>{{ profitService.today().netProfit | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+    </div>
+
+    <div class="breakdown">
+      <div class="profit-value">
+        <mat-icon>trending_up</mat-icon>
+        <span><small>Gross Profit</small><strong>{{ profitService.today().grossProfit | currency:'PKR ':'symbol':'1.0-0' }}</strong></span>
+      </div>
+      <div class="expense-value">
+        <mat-icon>trending_down</mat-icon>
+        <span><small>Expenses</small><strong>{{ profitService.today().expenses | currency:'PKR ':'symbol':'1.0-0' }}</strong></span>
+      </div>
+    </div>
+
+    <footer>
+      <span>{{ profitService.today().saleCount }} sales</span>
+      <span>{{ profitService.today().expenseCount }} expenses</span>
+      <span>{{ profitService.today().salesRevenue | currency:'PKR ':'symbol':'1.0-0' }} revenue</span>
+    </footer>
+  </article>
+
+  <article class="period-card month-card glass-card">
+    <header>
+      <span class="period-icon"><mat-icon>calendar_month</mat-icon></span>
+      <div><small>CURRENT PERIOD</small><h2>This Month</h2></div>
+      <span class="status-dot">Monthly</span>
+    </header>
+
+    <div class="net-profit" [class.loss]="profitService.thisMonth().netProfit < 0">
+      <small>Net Profit</small>
+      <strong>{{ profitService.thisMonth().netProfit | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+    </div>
+
+    <div class="breakdown">
+      <div class="profit-value">
+        <mat-icon>bar_chart</mat-icon>
+        <span><small>Gross Profit</small><strong>{{ profitService.thisMonth().grossProfit | currency:'PKR ':'symbol':'1.0-0' }}</strong></span>
+      </div>
+      <div class="expense-value">
+        <mat-icon>remove_circle_outline</mat-icon>
+        <span><small>Expenses</small><strong>{{ profitService.thisMonth().expenses | currency:'PKR ':'symbol':'1.0-0' }}</strong></span>
+      </div>
+    </div>
+
+    <footer>
+      <span>{{ profitService.thisMonth().saleCount }} sales</span>
+      <span>{{ profitService.thisMonth().expenseCount }} expenses</span>
+      <span>{{ profitService.thisMonth().salesRevenue | currency:'PKR ':'symbol':'1.0-0' }} revenue</span>
+    </footer>
+  </article>
+</section>
+
+<section class="performance-grid">
+  <article class="all-time-card glass-card">
+    <div>
+      <span class="eyebrow">ALL-TIME POSITION</span>
+      <h2>Business Net Profit</h2>
+      <p>Profit from every recorded sale after all operating expenses.</p>
+    </div>
+    <strong [class.loss]="profitService.allTime().netProfit < 0">
+      {{ profitService.allTime().netProfit | currency:'PKR ':'symbol':'1.0-0' }}
+    </strong>
+    <div class="all-time-details">
+      <span>Gross {{ profitService.allTime().grossProfit | currency:'PKR ':'symbol':'1.0-0' }}</span>
+      <span>Expenses {{ profitService.allTime().expenses | currency:'PKR ':'symbol':'1.0-0' }}</span>
+    </div>
+  </article>
+
+  <article class="daily-card glass-card">
+    <div class="section-heading">
+      <div><span>LAST 7 DAYS</span><h2>Daily Performance</h2></div>
+      <mat-icon>insights</mat-icon>
+    </div>
+    <div class="daily-list">
+      @for (day of profitService.recentDailyPerformance(); track day.date) {
+        <div class="day-row">
+          <span>{{ day.date | date:'EEE, d MMM' }}</span>
+          <div>
+            <small>Gross</small>
+            <strong>{{ day.summary.grossProfit | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+          </div>
+          <div>
+            <small>Expense</small>
+            <strong class="expense">{{ day.summary.expenses | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+          </div>
+          <b [class.loss]="day.summary.netProfit < 0">
+            {{ day.summary.netProfit | currency:'PKR ':'symbol':'1.0-0' }}
+          </b>
+        </div>
+      }
+    </div>
+  </article>
+</section>

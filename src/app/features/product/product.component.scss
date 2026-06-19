@@ -1,0 +1,38 @@
+﻿:host { display: block; }
+
+.product-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 470px) minmax(500px, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.product-form-card { padding: 30px; }
+.company-title { display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+.company-title strong, .company-title small { display: block; }
+.company-title strong { color: #F5F5F5; font-size: 18px; }
+.company-title small { color: #C0C0C0; font-size: 11px; margin-top: 3px; }
+.dealer-mark { width: 46px; height: 46px; display: grid; place-items: center; color: white; border-radius: 14px; background: linear-gradient(135deg, #E53935, #B71C1C); box-shadow: 0 9px 22px rgba(229, 57, 53, .24); }
+.product-id { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; margin-bottom: 20px; border-radius: 13px; color: #C0C0C0; background: rgba(236, 249, 237, .8); border: 1px solid rgba(183, 28, 28, .35); }
+.product-id span { font-size: 12px; }
+.product-id strong { color: #E53935; font-size: 17px; letter-spacing: 1px; }
+form { display: grid; gap: 6px; }
+mat-form-field { width: 100%; }
+.quantity-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dealer-button { width: 100%; height: 52px; margin-top: 6px; color: white !important; border-radius: 14px !important; background: linear-gradient(135deg, #E53935, #b71c1c) !important; box-shadow: 0 10px 24px rgba(211,47,47,.28); }
+.product-list { overflow: hidden; }
+.section-title { display: flex; align-items: center; justify-content: space-between; padding: 24px 26px 16px; }
+.section-title span { color: #E53935; font-size: 9px; font-weight: 800; letter-spacing: 1.5px; }
+.section-title h2 { margin: 3px 0 0; color: #F5F5F5; font-size: 19px; }
+.section-title > strong { min-width: 38px; height: 38px; display: grid; place-items: center; color: white; border-radius: 12px; background: #E53935; }
+.delete-button { color: #c84a52; }
+
+@media (max-width: 1080px) {
+  .product-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .product-form-card { padding: 22px 18px; }
+  .quantity-row { grid-template-columns: 1fr; gap: 0; }
+  .company-title strong { font-size: 15px; }
+}
+

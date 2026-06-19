@@ -1,0 +1,67 @@
+﻿:host { display: block; }
+
+.profit-heading { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; color: white; text-shadow: 0 2px 14px rgba(0,0,0,.24); }
+.profit-heading h1 { margin: 4px 0; font-size: clamp(30px,3vw,40px); letter-spacing: -1.3px; }
+.profit-heading p { margin: 0; color: rgba(255,255,255,.84); }
+.formula-badge { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid rgba(255,255,255,.4); border-radius: 30px; background: rgba(255,255,255,.18); backdrop-filter: blur(12px); font-size: 11px; }
+.formula-badge mat-icon { width: 17px; height: 17px; color: #b8f5c1; font-size: 17px; }
+
+.period-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; }
+.period-card { padding: 28px; overflow: hidden; }
+.period-card header { display: grid; grid-template-columns: 48px 1fr auto; gap: 13px; align-items: center; }
+.period-icon { width: 48px; height: 48px; display: grid; place-items: center; color: #26863a; border-radius: 15px; background: #e5f7e8; }
+.month-card .period-icon { color: #2674b9; background: #e7f1fb; }
+.period-card header small, .period-card header h2 { display: block; margin: 0; }
+.period-card header small { color: #e6d4d3 !important; font-size: 11px; font-weight: 800; letter-spacing: 1.3px; }
+.period-card header h2 { margin-top: 3px; color: #fff !important; font-size: 21px; }
+.status-dot { padding: 7px 11px; color: #fff !important; border: 1px solid rgba(255,119,116,.55); border-radius: 20px; background: #b71c1c !important; font-size: 11px; font-weight: 800; }
+.month-card .status-dot { color: #fff !important; background: #d32f2f !important; }
+.net-profit { margin: 25px 0; text-align: center; }
+.net-profit small, .net-profit strong { display: block; }
+.net-profit small { color: #AFAFAF; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.net-profit strong { margin-top: 6px; color: #E53935; font-size: clamp(34px,4vw,48px); letter-spacing: -1.5px; }
+.month-card .net-profit strong { color: #2479c5; }
+.net-profit strong.loss, .all-time-card > strong.loss, .day-row b.loss { color: #d4424d; }
+.breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.breakdown > div { display: flex; align-items: center; gap: 9px; padding: 14px; border: 1px solid rgba(255,119,116,.24); border-radius: 13px; background: rgba(84,25,25,.72); }
+.breakdown mat-icon { width: 20px; height: 20px; color: #26a14a; font-size: 20px; }
+.breakdown .expense-value mat-icon { color: #d74b54; }
+.breakdown small, .breakdown strong { display: block; }
+.breakdown small { color: #e0cecd !important; font-size: 10px; }
+.breakdown strong { margin-top: 3px; color: #fff !important; font-size: 13px; }
+.breakdown .expense-value strong { color: #ffaaa7 !important; }
+.period-card footer { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; padding-top: 15px; border-top: 1px solid rgba(229,57,53,.1); color: #AFAFAF; font-size: 9px; }
+
+.performance-grid { display: grid; grid-template-columns: minmax(280px,.75fr) minmax(500px,1.25fr); gap: 22px; margin-top: 22px; }
+.all-time-card { padding: 28px; }
+.all-time-card h2 { margin: 5px 0 7px; color: #fff !important; font-size: 20px; }
+.all-time-card p { margin: 0; color: #AFAFAF; font-size: 11px; line-height: 1.6; }
+.all-time-card > strong { display: block; margin: 27px 0; color: #168b3b; font-size: clamp(30px,3vw,42px); }
+.all-time-details { display: flex; flex-wrap: wrap; gap: 8px; }
+.all-time-details span { padding: 7px 10px; color: #C0C0C0; border-radius: 20px; background: #242424; font-size: 9px; }
+.daily-card { overflow: hidden; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; padding: 23px 25px 13px; }
+.section-heading span { color: #E53935; font-size: 9px; font-weight: 800; letter-spacing: 1.5px; }
+.section-heading h2 { margin: 4px 0 0; color: #F5F5F5; font-size: 19px; }
+.section-heading mat-icon { color: #3d9149; }
+.daily-list { padding: 0 25px 18px; }
+.day-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr auto; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(229,57,53,.1); }
+.day-row > span { color: #C0C0C0; font-size: 10px; font-weight: 700; }
+.day-row small, .day-row strong { display: block; }
+.day-row small { color: #d5c1c0; font-size: 9px; }
+.day-row strong { margin-top: 2px; color: #fff; font-size: 11px; }
+.day-row strong.expense { color: #ffaaa7; }
+.day-row b { min-width: 78px; text-align: right; color: #ff7774; font-size: 12px; }
+
+@media (max-width: 1050px) {
+  .performance-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .profit-heading { align-items: flex-start; }
+  .formula-badge { display: none; }
+  .period-grid { grid-template-columns: 1fr; }
+  .period-card { padding: 22px 18px; }
+  .day-row { grid-template-columns: 1fr auto; }
+  .day-row div { display: none; }
+}
+
