@@ -21,7 +21,7 @@
       <mat-form-field appearance="outline" floatLabel="always">
         <mat-label>Expense Title</mat-label>
         <mat-icon matPrefix>edit_note</mat-icon>
-        <input matInput formControlName="title" placeholder="e.g. Office rent" />
+        <input matInput formControlName="title" [readonly]="form.controls.category.value !== 'Other'" [placeholder]="form.controls.category.value === 'Other' ? 'Enter expense title' : ''" />
         @if (form.controls.title.touched && form.controls.title.invalid) {
           <mat-error>Expense title is required</mat-error>
         }
@@ -118,8 +118,11 @@
         <td mat-cell *matCellDef="let row" class="amount-value">{{ row.amount | currency:'PKR ' }}</td>
       </ng-container>
       <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef></th>
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
         <td mat-cell *matCellDef="let row">
+          <button mat-icon-button class="edit-button" aria-label="Edit expense" title="Edit Expense" (click)="editExpense(row)">
+            <mat-icon>edit</mat-icon>
+          </button>
           <button mat-icon-button class="delete-button" (click)="deleteExpense(row.id, row.title)">
             <mat-icon>delete_outline</mat-icon>
           </button>

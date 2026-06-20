@@ -27,7 +27,7 @@ import { UiService } from '../../shared/services/ui.service';
   styleUrl: './product.component.scss'
 })
 export class ProductComponent {
-  readonly displayedColumns = ['id', 'bike', 'year', 'engine', 'color', 'purchase', 'sale', 'quantity', 'actions'];
+  readonly displayedColumns = ['id', 'bike', 'year', 'engine', 'color', 'purchase', 'quantity', 'actions'];
   readonly nextBikeId = computed(() => this.bikeService.bikes().length + 1);
   readonly form;
 
@@ -74,7 +74,9 @@ export class ProductComponent {
   removeBike(id: string, name: string): void {
     const inUse =
       this.purchaseService.purchases().some((item) => item.bikeId === id) ||
-      this.saleService.sales().some((item) => item.bikeId === id);
+      this.saleService.sales().some((item) =>
+        item.bikeId === id || item.allocations?.some((allocation) => allocation.bikeId === id)
+      );
     if (inUse) {
       this.ui.error('This bike has transactions and cannot be deleted.');
       return;

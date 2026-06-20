@@ -1,6 +1,6 @@
 <section class="stock-heading">
   <div><span class="eyebrow">LIVE SHOWROOM INVENTORY</span><h1><mat-icon>two_wheeler</mat-icon> Bike Stock</h1><p>Opening stock + purchases − sales, updated automatically</p></div>
-  <div class="live-badge"><span></span> Live stock ledger</div>
+  <!-- <div class="live-badge"><span></span> Live stock ledger</div> -->
 </section>
 <section class="stock-summary">
   <article class="summary-card glass-card"><span class="summary-icon"><mat-icon>two_wheeler</mat-icon></span><div><small>Available Bikes</small><strong>{{ stockService.totalUnits() }}</strong></div></article>
@@ -20,7 +20,7 @@
         </div>
         <div class="stock-flow"><div><span>Opening</span><strong>{{ item.openingQuantity }}</strong></div><mat-icon>add</mat-icon><div class="purchased"><span>Purchased</span><strong>+{{ item.purchasedQuantity }}</strong></div><mat-icon>remove</mat-icon><div class="sold"><span>Sold</span><strong>−{{ item.soldQuantity }}</strong></div></div>
         <mat-progress-bar mode="determinate" [value]="stockPercentage(item)" [class.low-progress]="stockService.isLowStock(item.availableStock)" />
-        <div class="card-footer"><div><small>Average Purchase Price</small><strong>{{ item.averagePurchasePrice | currency:'PKR ':'symbol':'1.0-0' }}</strong></div><div><small>Stock Value</small><strong>{{ item.inventoryValue | currency:'PKR ':'symbol':'1.0-0' }}</strong></div><div class="actions"><button mat-flat-button class="delete-button" (click)="deleteBike(item)"><mat-icon>delete_outline</mat-icon>Delete</button></div></div>
+        <div class="card-footer"><div><small>Average Purchase Price</small><strong>{{ item.averagePurchasePrice | currency:'PKR ':'symbol':'1.0-0' }}</strong></div><div><small>Stock Value</small><strong>{{ item.inventoryValue | currency:'PKR ':'symbol':'1.0-0' }}</strong></div><div class="actions"><button mat-flat-button class="edit-button" (click)="editBike(item)"><mat-icon>edit</mat-icon>Edit</button><button mat-flat-button class="delete-button" (click)="deleteBike(item)"><mat-icon>delete_outline</mat-icon>Delete</button></div></div>
         @if (stockService.isLowStock(item.availableStock)) { <div class="low-stock-message"><mat-icon>warning_amber</mat-icon>Restock now: fewer than {{ stockService.lowStockLimit }} bikes remain</div> }
       </article>
     } @empty { <div class="empty-stock"><mat-icon>two_wheeler</mat-icon><h3>No bikes in inventory</h3><p>Add a bike model to begin managing showroom stock.</p></div> }

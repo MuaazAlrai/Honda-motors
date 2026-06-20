@@ -84,6 +84,8 @@ export class DashboardComponent {
     return [
       { label: 'Bikes Purchased', value: metrics.totalBikesPurchased, icon: 'local_shipping', accent: 'silver', currency: false },
       { label: 'Bikes Sold', value: metrics.totalBikesSold, icon: 'two_wheeler', accent: 'red', currency: false },
+      { label: 'Cash in Hand', value: metrics.cashInHand, icon: 'payments', accent: 'silver', currency: true },
+      { label: 'Outstanding Credit', value: metrics.outstandingCredit, icon: 'credit_score', accent: 'red', currency: true },
       { label: 'Total Profit', value: metrics.totalProfit, icon: 'trending_up', accent: 'red', currency: true },
       { label: 'Total Expenses', value: metrics.totalExpenses, icon: 'receipt_long', accent: 'silver', currency: true },
       { label: 'Net Profit', value: metrics.netProfit, icon: 'account_balance_wallet', accent: 'red', currency: true }

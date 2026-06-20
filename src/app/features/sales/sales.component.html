@@ -1,79 +1,300 @@
 <section class="sales-heading">
-  <div><span class="eyebrow">SHOWROOM REVENUE</span><h1>Bike Sales</h1><p>Record customers, revenue and dealership profit</p></div>
-  <div class="live-badge"><span></span> Live inventory</div>
+  <div>
+    <span class="eyebrow">SHOWROOM REVENUE</span>
+    <h1>Bike Sales</h1>
+    <p>Record customer sales and reduce showroom stock</p>
+  </div>
 </section>
 
 <div class="sales-grid">
   <section class="sale-form glass-card">
-    <div class="card-heading"><span class="heading-icon"><mat-icon>point_of_sale</mat-icon></span><div><h2>Add Bike Sale</h2><p>Stock and profit update automatically</p></div></div>
+    <div class="card-heading">
+      <span class="heading-icon"><mat-icon>point_of_sale</mat-icon></span>
+      <div>
+        <h2>Add Bike Sale</h2>
+        <p>Add one or more bikes to a single invoice</p>
+      </div>
+    </div>
+
     <form [formGroup]="form" (ngSubmit)="saveSale()">
+
+      <!-- CUSTOMER INFO -->
       <div class="input-row">
         <div class="form-control">
-          <label class="field-label" for="customer-name">Customer Name</label>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>person</mat-icon><input id="customer-name" matInput formControlName="customerName" /></mat-form-field>
+          <label class="field-label" for="sale-customer-name">Customer Name</label>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-icon matPrefix>person</mat-icon>
+            <input id="sale-customer-name" matInput formControlName="customerName" />
+            @if (form.controls.customerName.touched && form.controls.customerName.invalid) {
+              <mat-error>Please enter customer name</mat-error>
+            }
+          </mat-form-field>
         </div>
+
         <div class="form-control">
-          <label class="field-label" for="customer-contact">Customer Contact</label>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>phone</mat-icon><input id="customer-contact" matInput formControlName="customerContact" placeholder="03XX-XXXXXXX" /></mat-form-field>
+          <label class="field-label" for="sale-customer-contact">Customer Contact</label>
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-icon matPrefix>phone</mat-icon>
+            <input id="sale-customer-contact" matInput formControlName="customerContact" placeholder="03XX-XXXXXXX" />
+            @if (form.controls.customerContact.touched && form.controls.customerContact.invalid) {
+              <mat-error>Please enter contact number</mat-error>
+            }
+          </mat-form-field>
         </div>
       </div>
-      <div class="form-control">
-        <label class="field-label" id="sale-bike-label">Bike Model</label>
-        <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>two_wheeler</mat-icon>
-        <mat-select formControlName="bikeId" aria-labelledby="sale-bike-label" (selectionChange)="stockError.set('')">
-          @for (bike of salesService.stock(); track bike.id) { <mat-option [value]="bike.id">{{ bike.bikeName }} · Stock {{ bike.availableStock }}</mat-option> }
-        </mat-select>
-        @if (!salesService.stock().length) { <mat-hint>Add a bike model first</mat-hint> }
+
+      <!-- OPTIONS -->
+      <div class="invoice-options">
+        <div class="color-choice">
+          <mat-slide-toggle formControlName="specificColor">
+            Sell by specific color
+          </mat-slide-toggle>
+          <small>Off uses stock from all colors.</small>
+        </div>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Payment Method</mat-label>
+          <mat-select formControlName="paymentMethod">
+            @for (method of ['Cash', 'Bank Transfer', 'Card', 'Installment', 'Other']; track method) {
+              <mat-option [value]="method">{{ method }}</mat-option>
+            }
+          </mat-select>
         </mat-form-field>
       </div>
-      <div class="input-row">
-        <div class="form-control">
-          <label class="field-label" for="sale-quantity">Quantity</label>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>inventory_2</mat-icon><input id="sale-quantity" matInput type="number" formControlName="quantity" (input)="stockError.set('')" /></mat-form-field>
+
+      <!-- ITEMS -->
+      <div class="items-heading">
+        <div>
+          <span>SALE ITEMS</span>
+          <h3>Bikes in this invoice</h3>
         </div>
-        <div class="form-control">
-          <label class="field-label" for="sale-unit-price">Sale Price per Bike</label>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>payments</mat-icon><input id="sale-unit-price" matInput type="number" formControlName="salePricePerBike" /></mat-form-field>
+
+        <button mat-stroked-button type="button" class="add-item-button" (click)="addItem()">
+          <mat-icon>add</mat-icon>
+          Add Bike
+        </button>
+      </div>
+
+      <div formArrayName="items" class="invoice-items">
+
+        @for (item of items.controls; track item; let i = $index) {
+          <article class="invoice-item" [formGroupName]="i">
+
+            <span class="item-number">{{ i + 1 }}</span>
+
+            <!-- BIKE -->
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Bike Model</mat-label>
+              <mat-select formControlName="bikeId" (selectionChange)="selectBike(i)">
+                @for (bike of stockOptions(); track bike.id) {
+                  <mat-option [value]="bike.id">
+                    {{ bike.bikeName }}
+                    {{ specificColor() ? ' ' + bike.color : '' }}
+                    ({{ bike.availableStock }} available)
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <!-- QUANTITY (FIXED - NO AVAILABLE TEXT) -->
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Quantity</mat-label>
+              <input matInput type="number" min="1" formControlName="quantity" />
+            </mat-form-field>
+
+            <!-- PRICE -->
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="price-field">
+              <mat-label>Sale Price per Bike</mat-label>
+              <input matInput type="number" min="0" formControlName="salePricePerBike" />
+            </mat-form-field>
+
+            <!-- REMOVE -->
+            <button mat-icon-button type="button" class="remove-item-button"
+              [disabled]="items.length === 1"
+              (click)="removeItem(i)">
+              <mat-icon>close</mat-icon>
+            </button>
+
+            <div class="item-subtotal">
+              <span>Total</span>
+              <strong>{{ itemTotal(i) | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+            </div>
+
+          </article>
+        }
+
+      </div>
+
+      <!-- ERROR -->
+      @if (!stockOptions().length) {
+        <div class="stock-error">
+          <mat-icon>inventory_2</mat-icon>
+          No bikes are currently available for sale.
+        </div>
+      }
+
+      @if (stockError()) {
+        <div class="stock-error">
+          <mat-icon>error_outline</mat-icon>
+          {{ stockError() }}
+        </div>
+      }
+
+      <!-- TOTAL -->
+      <div class="stock-note">
+        <mat-icon>check_circle</mat-icon>
+        {{ totalQuantity() }} bike(s) included in this invoice
+      </div>
+
+      <div class="total-row">
+        <span>Grand Total</span>
+        <strong>{{ grandTotal() | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+      </div>
+
+      <!-- PAYMENT -->
+      <div class="payment-fields">
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Payment Type</mat-label>
+          <mat-select formControlName="paymentType">
+            <mat-option value="FULL">Full Payment</mat-option>
+            <mat-option value="PARTIAL">Partial Payment</mat-option>
+            <mat-option value="CREDIT">Credit Sale</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Paid Amount</mat-label>
+          <input matInput type="number" min="0"
+            formControlName="paidAmount"
+            [readonly]="form.controls.paymentType.value !== 'PARTIAL'" />
+        </mat-form-field>
+
+      </div>
+
+      <!-- PAYMENT SUMMARY -->
+      <div class="payment-summary">
+        <div>
+          <span>Total</span>
+          <strong>{{ grandTotal() | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+        </div>
+
+        <div>
+          <span>Paid</span>
+          <strong>{{ effectivePaidAmount() | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+        </div>
+
+        <div class="remaining">
+          <span>Remaining</span>
+          <strong>{{ remainingAmount() | currency:'PKR ':'symbol':'1.0-0' }}</strong>
         </div>
       </div>
-      @if (stockError() || insufficientStock()) { <div class="stock-error"><mat-icon>error_outline</mat-icon>{{ stockError() || 'Insufficient bike stock.' }}</div> }
-      @else if (selectedBike()) { <div class="stock-note"><mat-icon>check_circle</mat-icon>{{ selectedBike()!.availableStock }} bike(s) currently available</div> }
-      <div class="total-row"><span>Total Revenue</span><strong>{{ total() | currency:'PKR ':'symbol':'1.0-0' }}</strong></div>
-      <button mat-flat-button class="save-button" type="submit" [disabled]="!salesService.stock().length"><mat-icon>check_circle</mat-icon>Save Bike Sale</button>
+
+      <!-- SAVE -->
+      <button mat-flat-button class="save-button" type="submit"
+        [disabled]="!stockOptions().length">
+        <mat-icon>check_circle</mat-icon>
+        Save Bike Sale
+      </button>
+
     </form>
   </section>
-
-  <aside class="summary-column">
-    <h2>Today's Bike Sales</h2>
-    <div class="summary-cards">
-      <article class="summary-card glass-card"><span class="summary-icon sales"><mat-icon>trending_up</mat-icon></span><div><small>Total Revenue</small><strong>{{ salesService.todayTotalSales() | currency:'PKR ':'symbol':'1.0-0' }}</strong></div></article>
-      <article class="summary-card glass-card"><span class="summary-icon profit"><mat-icon>account_balance_wallet</mat-icon></span><div><small>Total Profit</small><strong>{{ salesService.todayTotalProfit() | currency:'PKR ':'symbol':'1.0-0' }}</strong></div></article>
-    </div>
-    <section class="inventory-preview glass-card">
-      <div class="preview-heading"><span>Available bikes</span><strong>{{ salesService.stock().length }}</strong></div>
-      @for (bike of salesService.stock().slice(0, 4); track bike.id) {
-        <div class="stock-row"><span class="bike-icon"><mat-icon>two_wheeler</mat-icon></span><div><strong>{{ bike.bikeName }}</strong><small>{{ bike.engineCc }} CC · {{ bike.color }}</small></div><b [class.low]="bike.availableStock < 3">{{ bike.availableStock }} units</b></div>
-      } @empty { <div class="mini-empty">No bike models available yet.</div> }
-    </section>
-  </aside>
 </div>
 
 <section class="recent-sales glass-card">
-  <div class="section-heading"><div><span>TRANSACTIONS</span><h2>Recent Bike Sales</h2></div><strong>{{ salesService.sales().length }} records</strong></div>
+  <div class="section-heading">
+    <div><span>SALES LEDGER</span><h2>Bike Sales History</h2></div>
+    <strong>{{ salesService.sales().length }} records</strong>
+  </div>
+
   <div class="table-wrap">
     <table mat-table [dataSource]="salesService.saleViews()">
-      <ng-container matColumnDef="invoice"><th mat-header-cell *matHeaderCellDef>Invoice</th><td mat-cell *matCellDef="let row"><strong>{{ row.invoiceNumber }}</strong></td></ng-container>
-      <ng-container matColumnDef="customer"><th mat-header-cell *matHeaderCellDef>Customer</th><td mat-cell *matCellDef="let row">{{ row.customerName }}</td></ng-container>
-      <ng-container matColumnDef="contact"><th mat-header-cell *matHeaderCellDef>Contact</th><td mat-cell *matCellDef="let row">{{ row.customerContact }}</td></ng-container>
-      <ng-container matColumnDef="bike"><th mat-header-cell *matHeaderCellDef>Bike Model</th><td mat-cell *matCellDef="let row">{{ row.bikeName }}</td></ng-container>
-      <ng-container matColumnDef="quantity"><th mat-header-cell *matHeaderCellDef>Quantity</th><td mat-cell *matCellDef="let row">{{ row.quantity }}</td></ng-container>
-      <ng-container matColumnDef="price"><th mat-header-cell *matHeaderCellDef>Price / Bike</th><td mat-cell *matCellDef="let row">{{ row.salePricePerBike | currency:'PKR ' }}</td></ng-container>
-      <ng-container matColumnDef="revenue"><th mat-header-cell *matHeaderCellDef>Total Revenue</th><td mat-cell *matCellDef="let row"><strong>{{ row.totalRevenue | currency:'PKR ' }}</strong></td></ng-container>
-      <ng-container matColumnDef="profit"><th mat-header-cell *matHeaderCellDef>Profit</th><td mat-cell *matCellDef="let row" class="profit-value">{{ row.profit | currency:'PKR ' }}</td></ng-container>
-      <ng-container matColumnDef="date"><th mat-header-cell *matHeaderCellDef>Date</th><td mat-cell *matCellDef="let row">{{ row.saleDate | date:'mediumDate' }}</td></ng-container>
-      <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef></th><td mat-cell *matCellDef="let row"><button mat-icon-button class="delete-button" (click)="deleteSale(row.id)"><mat-icon>delete_outline</mat-icon></button></td></ng-container>
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr><tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      <ng-container matColumnDef="invoice">
+        <th mat-header-cell *matHeaderCellDef>Invoice</th>
+        <td mat-cell *matCellDef="let row"><strong>{{ row.invoiceNumber }}</strong></td>
+      </ng-container>
+
+      <ng-container matColumnDef="customer">
+        <th mat-header-cell *matHeaderCellDef>Customer</th>
+        <td mat-cell *matCellDef="let row"><strong>{{ row.customerName }}</strong></td>
+      </ng-container>
+
+      <ng-container matColumnDef="contact">
+        <th mat-header-cell *matHeaderCellDef>Contact</th>
+        <td mat-cell *matCellDef="let row">{{ row.customerContact }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="items">
+        <th mat-header-cell *matHeaderCellDef>Bikes Purchased</th>
+        <td mat-cell *matCellDef="let row">
+          <div class="history-items">
+            @for (item of row.itemsView; track item.id) {
+              <span>
+                <b>{{ item.bikeName }}{{ item.specificColor && item.color ? ' ' + item.color : '' }}</b>
+                <small>Qty {{ item.quantity }} × {{ item.salePricePerBike | currency:'PKR ':'symbol':'1.0-0' }}</small>
+              </span>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef>Total Bikes</th>
+        <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="revenue">
+        <th mat-header-cell *matHeaderCellDef>Total Bill</th>
+        <td mat-cell *matCellDef="let row"><strong>{{ row.totalRevenue | currency:'PKR ':'symbol':'1.0-0' }}</strong></td>
+      </ng-container>
+
+      <ng-container matColumnDef="paid">
+        <th mat-header-cell *matHeaderCellDef>Paid</th>
+        <td mat-cell *matCellDef="let row" class="paid-value">{{ (row.paidAmount ?? row.totalRevenue) | currency:'PKR ':'symbol':'1.0-0' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="remaining">
+        <th mat-header-cell *matHeaderCellDef>Remaining</th>
+        <td mat-cell *matCellDef="let row" class="remaining-value" [class.cleared]="(row.remainingAmount ?? 0) === 0">{{ (row.remainingAmount ?? 0) | currency:'PKR ':'symbol':'1.0-0' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="paymentMethod">
+        <th mat-header-cell *matHeaderCellDef>Payment Method</th>
+        <td mat-cell *matCellDef="let row">{{ row.paymentMethod || 'Cash' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let row"><span class="payment-status" [class]="(row.paymentStatus ?? 'PAID').toLowerCase()">{{ row.paymentStatus ?? 'PAID' }}</span></td>
+      </ng-container>
+
+      <ng-container matColumnDef="date">
+        <th mat-header-cell *matHeaderCellDef>Sale Date</th>
+        <td mat-cell *matCellDef="let row">{{ row.saleDate | date:'mediumDate' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="notes">
+        <th mat-header-cell *matHeaderCellDef>Notes</th>
+        <td mat-cell *matCellDef="let row"><span class="history-notes" [title]="row.notes">{{ row.notes || '—' }}</span></td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let row">
+          @if ((row.remainingAmount ?? 0) > 0) {
+            <button mat-icon-button class="payment-button" title="Add Payment" (click)="addPayment(row)"><mat-icon>add_card</mat-icon></button>
+          }
+          <button mat-icon-button title="Edit Sale" (click)="editSale(row)"><mat-icon>edit</mat-icon></button>
+          <button mat-icon-button class="delete-button" title="Delete Sale" (click)="deleteSale(row.id)"><mat-icon>delete_outline</mat-icon></button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
   </div>
-  @if (!salesService.sales().length) { <div class="sales-empty"><mat-icon>two_wheeler</mat-icon><h3>No bike sales recorded</h3><p>Your first showroom sale will appear here.</p></div> }
+
+  @if (!salesService.sales().length) {
+    <div class="sales-empty"><mat-icon>receipt_long</mat-icon><h3>No sales recorded</h3><p>Saved sales will appear here.</p></div>
+  }
 </section>

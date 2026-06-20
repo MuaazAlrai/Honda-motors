@@ -6,6 +6,7 @@ import { ExpenseService } from './expense.service';
 import { InventoryService } from './inventory.service';
 import { PurchaseService } from './purchase.service';
 import { SaleService } from './sale.service';
+import { bikeNameKey } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -15,6 +16,14 @@ export class DashboardService {
     const stock = this.inventory.stock();
     const totalProfit = sales.reduce((sum, item) => sum + item.profit, 0);
     const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
+    const cashInHand = sales.reduce(
+      (sum, item) => sum + (item.paidAmount ?? item.totalRevenue),
+      0
+    );
+    const outstandingCredit = sales.reduce(
+      (sum, item) => sum + (item.remainingAmount ?? 0),
+      0
+    );
     return {
       totalBikesPurchased: this.purchases.purchases().reduce((sum, item) => sum + item.quantity, 0),
       totalBikesSold: sales.reduce((sum, item) => sum + item.quantity, 0),
@@ -23,15 +32,17 @@ export class DashboardService {
       netProfit: totalProfit - totalExpenses,
       inventoryValue: stock.reduce((sum, item) => sum + item.inventoryValue, 0),
       lowStockCount: stock.filter((item) => item.availableStock < LOW_STOCK_LIMIT).length,
-      bikeModelCount: this.bikes.bikes().length,
-      bestSellingBike: this.bestSeller(sales)
+      bikeModelCount: stock.length,
+      bestSellingBike: this.bestSeller(sales),
+      cashInHand,
+      outstandingCredit
     };
   });
 
   readonly recentActivity = computed<ActivityItem[]>(() =>
     [
       ...this.purchases.purchaseViews().map((item) => ({ type: 'Purchase' as const, description: `${item.bikeName} · ${item.supplierName}`, amount: item.totalCost, date: item.purchaseDate })),
-      ...this.sales.saleViews().map((item) => ({ type: 'Sale' as const, description: `${item.bikeName} · ${item.customerName}`, amount: item.totalRevenue, date: item.saleDate })),
+      ...this.sales.saleViews().map((item) => ({ type: 'Sale' as const, description: `${item.itemsSummary} · ${item.customerName}`, amount: item.totalRevenue, date: item.saleDate })),
       ...this.expenses.expenses().map((item) => ({ type: 'Expense' as const, description: `${item.title} · ${item.category}`, amount: item.amount, date: item.date }))
     ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8)
   );
@@ -64,8 +75,16 @@ export class DashboardService {
 
   private bestSeller(sales: Sale[]): string {
     const totals = new Map<string, number>();
-    sales.forEach((sale) => totals.set(sale.bikeId, (totals.get(sale.bikeId) ?? 0) + sale.quantity));
+    sales.forEach((sale) => {
+      this.sales.itemsFor(sale).forEach((item) => {
+        const key = bikeNameKey(item.bikeName);
+        totals.set(key, (totals.get(key) ?? 0) + item.quantity);
+      });
+    });
     const winner = [...totals.entries()].sort((a, b) => b[1] - a[1])[0];
-    return winner ? this.bikes.getById(winner[0])?.bikeName ?? 'Unknown model' : 'No sales yet';
+    if (!winner) return 'No sales yet';
+    return this.bikes.bikes().find(
+      (bike) => bikeNameKey(bike.bikeName) === winner[0]
+    )?.bikeName ?? 'Unknown model';
   }
 }

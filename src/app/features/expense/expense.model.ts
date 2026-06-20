@@ -1,9 +1,8 @@
 export const EXPENSE_CATEGORIES = [
   'Rent',
-  'Workshop Expense',
-  'Spare Parts',
-  'Staff Salary',
+  'Salary',
   'Electricity',
+  'Maintenance',
   'Other'
 ] as const;
 

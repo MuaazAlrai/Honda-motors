@@ -1,12 +1,14 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { BikeService } from '../../core/services/bike.service';
 import { PurchaseService as LocalPurchaseService } from '../../core/services/purchase.service';
-import { NewPurchaseRequest, Purchase } from './purchase.model';
+import { SaleService } from '../../core/services/sale.service';
+import { NewPurchaseRequest, Purchase, PurchaseUpdate } from './purchase.model';
 
 @Injectable({ providedIn: 'root' })
 export class PurchasesService {
   private readonly localPurchases = inject(LocalPurchaseService);
   private readonly bikeService = inject(BikeService);
+  private readonly sales = inject(SaleService);
 
   readonly purchases = this.localPurchases.purchases;
   readonly purchaseViews = this.localPurchases.purchaseViews;
@@ -32,7 +34,32 @@ export class PurchasesService {
     });
   }
 
+  updatePurchase(id: string, input: PurchaseUpdate): Purchase {
+    const existing = this.localPurchases.purchases().find((purchase) => purchase.id === id);
+    if (!existing) throw new Error('Purchase record not found.');
+    const allocated = this.sales.allocatedQuantityForBatch(id);
+    if (allocated > 0 && input.bikeId !== existing.bikeId) {
+      throw new Error('Bike cannot be changed because this purchase batch has related sales.');
+    }
+    if (input.quantity < allocated) {
+      throw new Error(`Quantity cannot be less than ${allocated}; those units have already been sold.`);
+    }
+    const purchase = this.localPurchases.update(id, {
+      ...input,
+      invoiceNumber: existing.invoiceNumber
+    });
+    this.sales.repriceBatch(id, input.purchasePricePerBike);
+    return purchase;
+  }
+
+  hasRelatedSales(id: string): boolean {
+    return this.sales.allocatedQuantityForBatch(id) > 0;
+  }
+
   deletePurchase(id: string): void {
+    if (this.hasRelatedSales(id)) {
+      throw new Error('This purchase batch has related sales and cannot be deleted.');
+    }
     this.localPurchases.delete(id);
   }
 

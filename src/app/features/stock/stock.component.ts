@@ -5,7 +5,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { UiService } from '../../shared/services/ui.service';
+import { StockEditDialogComponent } from '../../shared/dialogs/stock-edit-dialog.component';
 import { StockItem } from './stock.model';
 import { StockService } from './stock.service';
 
@@ -23,16 +25,39 @@ export class StockComponent {
     return this.stockService.stock().filter((item) => `${item.bikeName} ${item.modelYear} ${item.engineCc} ${item.color}`.toLowerCase().includes(term));
   });
 
-  constructor(readonly stockService: StockService, private readonly ui: UiService) {}
+  constructor(
+    readonly stockService: StockService,
+    private readonly ui: UiService,
+    private readonly dialog: MatDialog
+  ) {}
+
+  editBike(item: StockItem): void {
+    this.dialog.open(StockEditDialogComponent, {
+      data: item,
+      width: '720px',
+      maxWidth: '95vw'
+    }).afterClosed().subscribe((input) => {
+      if (!input) return;
+      try {
+        this.stockService.updateBike(item, input);
+        this.ui.success('Stock updated.');
+      } catch (error) {
+        this.ui.error((error as Error).message);
+      }
+    });
+  }
 
   deleteBike(item: StockItem): void {
     if (!this.stockService.canDeleteBike(item.id)) {
-      this.ui.error('This bike has purchase or sale history and cannot be deleted.');
+      this.ui.error('This stock still contains inventory and cannot be deleted.');
       return;
     }
-    this.ui.confirm({ title: 'Delete bike model?', message: `${item.bikeName} will be permanently removed.` }).subscribe(() => {
+    this.ui.confirm({
+      title: 'Delete stock record?',
+      message: 'Are you sure you want to delete this stock record?'
+    }).subscribe(() => {
       this.stockService.deleteBike(item.id);
-      this.ui.success('Bike model deleted.');
+      this.ui.success('Stock deleted.');
     });
   }
 

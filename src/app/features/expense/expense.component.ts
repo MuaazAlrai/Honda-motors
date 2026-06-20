@@ -7,8 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { MatDialog } from '@angular/material/dialog';
+import { ExpenseDialogComponent } from '../../shared/dialogs/expense-dialog.component';
 import { UiService } from '../../shared/services/ui.service';
-import { EXPENSE_CATEGORIES } from './expense.model';
+import { Expense, EXPENSE_CATEGORIES } from './expense.model';
 import { ExpensesService } from './expense.service';
 
 @Component({
@@ -36,12 +38,16 @@ export class ExpenseComponent {
   constructor(
     formBuilder: FormBuilder,
     readonly expensesService: ExpensesService,
-    private readonly ui: UiService
+    private readonly ui: UiService,
+    private readonly dialog: MatDialog
   ) {
     this.form = formBuilder.nonNullable.group({
-      title: ['', [Validators.required, Validators.maxLength(100)]],
+      title: ['Other', [Validators.required, Validators.maxLength(100)]],
       amount: [0, [Validators.required, Validators.min(0.01)]],
       category: [EXPENSE_CATEGORIES.at(-1)!, Validators.required]
+    });
+    this.form.controls.category.valueChanges.subscribe((category) => {
+      this.form.patchValue({ title: category }, { emitEvent: false });
     });
   }
 
@@ -52,11 +58,27 @@ export class ExpenseComponent {
     }
     try {
       this.expensesService.saveExpense(this.form.getRawValue());
-      this.form.reset({ title: '', amount: 0, category: 'Other' });
+      this.form.reset({ title: 'Other', amount: 0, category: 'Other' });
       this.ui.success('Expense saved successfully.');
     } catch (error) {
       this.ui.error((error as Error).message);
     }
+  }
+
+  editExpense(expense: Expense): void {
+    this.dialog.open(ExpenseDialogComponent, {
+      data: expense,
+      width: '640px',
+      maxWidth: '95vw'
+    }).afterClosed().subscribe((input) => {
+      if (!input) return;
+      try {
+        this.expensesService.updateExpense(expense.id, input);
+        this.ui.success('Expense updated.');
+      } catch (error) {
+        this.ui.error((error as Error).message);
+      }
+    });
   }
 
   deleteExpense(id: string, title: string): void {
@@ -74,10 +96,8 @@ export class ExpenseComponent {
   categoryIcon(category: string): string {
     const icons: Record<string, string> = {
       Rent: 'home',
-      Utilities: 'bolt',
-      Salaries: 'groups',
-      Transport: 'local_shipping',
-      Marketing: 'campaign',
+      Salary: 'groups',
+      Electricity: 'bolt',
       Maintenance: 'build',
       Other: 'receipt_long'
     };

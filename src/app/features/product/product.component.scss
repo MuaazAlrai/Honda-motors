@@ -27,6 +27,7 @@ mat-form-field { width: 100%; }
 .section-title > strong { min-width: 38px; height: 38px; display: grid; place-items: center; color: white; border-radius: 12px; background: #E53935; }
 .delete-button { color: #c84a52; }
 
+
 @media (max-width: 1080px) {
   .product-layout { grid-template-columns: 1fr; }
 }

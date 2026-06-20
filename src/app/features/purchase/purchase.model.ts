@@ -24,3 +24,5 @@ export interface NewPurchaseRequest {
   quantity: number;
   purchasePricePerBike: number;
 }
+
+export type PurchaseUpdate = Omit<PurchaseInput, 'invoiceNumber'>;

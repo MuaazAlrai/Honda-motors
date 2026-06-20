@@ -1,6 +1,6 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { ExpenseService as LocalExpenseService } from '../../core/services/expense.service';
-import { Expense, NewExpenseRequest } from './expense.model';
+import { Expense, ExpenseInput, NewExpenseRequest } from './expense.model';
 
 @Injectable({ providedIn: 'root' })
 export class ExpensesService {
@@ -31,6 +31,11 @@ export class ExpensesService {
 
   deleteExpense(id: string): void {
     this.localExpenses.delete(id);
+  }
+
+  updateExpense(id: string, input: ExpenseInput): Expense {
+    if (input.amount <= 0) throw new Error('Expense amount must be greater than zero.');
+    return this.localExpenses.update(id, input);
   }
 
   private toLocalDate(date: Date): string {

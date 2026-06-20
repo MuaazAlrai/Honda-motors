@@ -1,0 +1,133 @@
+// ===============================================================
+// Prototype Firestore Security Rules
+// ===============================================================
+// Assumed owner-scoped data:
+// users/{uid}/saleBalances/{saleId}
+//   ownerId, saleId, invoiceNumber, customerName, customerContact,
+//   totalAmount, paidAmount, remainingAmount, paymentStatus, updatedAt
+// users/{uid}/saleBalances/{saleId}/payments/{paymentId}
+//   ownerId, saleId, invoiceNumber, customerName, amount,
+//   paymentMethod, paymentDate, notes, createdAt
+// users/{uid}/customerLedgers/{customerId}
+//   ownerId, customerName, customerContact, updatedAt
+// users/{uid}/customerLedgers/{customerId}/entries/{entryId}
+//   ownerId, saleId, invoiceNumber, saleAmount, paidAmount,
+//   outstanding, entryType, updatedAt
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function validShortString(value, maxLength) {
+      return value is string && value.size() <= maxLength;
+    }
+
+    function validMoney(value) {
+      return value is number && value >= 0 && value <= 10000000000;
+    }
+
+    function validSaleBalance(data, uid) {
+      return data.keys().hasOnly([
+          'ownerId', 'saleId', 'invoiceNumber', 'customerName',
+          'customerContact', 'totalAmount', 'paidAmount',
+          'remainingAmount', 'paymentStatus', 'updatedAt'
+        ]) &&
+        data.ownerId == uid &&
+        validShortString(data.saleId, 128) &&
+        validShortString(data.invoiceNumber, 128) &&
+        validShortString(data.customerName, 120) &&
+        validShortString(data.customerContact, 40) &&
+        validMoney(data.totalAmount) &&
+        validMoney(data.paidAmount) &&
+        validMoney(data.remainingAmount) &&
+        data.paidAmount + data.remainingAmount == data.totalAmount &&
+        data.paymentStatus in ['PAID', 'PARTIAL', 'CREDIT'] &&
+        data.updatedAt is timestamp;
+    }
+
+    function validPayment(data, uid) {
+      return data.keys().hasOnly([
+          'ownerId', 'saleId', 'invoiceNumber', 'customerName',
+          'amount', 'paymentMethod', 'paymentDate', 'notes', 'createdAt'
+        ]) &&
+        data.ownerId == uid &&
+        validShortString(data.saleId, 128) &&
+        validShortString(data.invoiceNumber, 128) &&
+        validShortString(data.customerName, 120) &&
+        validMoney(data.amount) && data.amount > 0 &&
+        validShortString(data.paymentMethod, 40) &&
+        validShortString(data.paymentDate, 10) &&
+        validShortString(data.notes, 1000) &&
+        data.createdAt is timestamp;
+    }
+
+    function validCustomerLedger(data, uid) {
+      return data.keys().hasOnly([
+          'ownerId', 'customerName', 'customerContact', 'updatedAt'
+        ]) &&
+        data.ownerId == uid &&
+        validShortString(data.customerName, 120) &&
+        validShortString(data.customerContact, 40) &&
+        data.updatedAt is timestamp;
+    }
+
+    function validLedgerEntry(data, uid) {
+      return data.keys().hasOnly([
+          'ownerId', 'saleId', 'invoiceNumber', 'saleAmount',
+          'paidAmount', 'outstanding', 'entryType', 'updatedAt'
+        ]) &&
+        data.ownerId == uid &&
+        validShortString(data.saleId, 128) &&
+        validShortString(data.invoiceNumber, 128) &&
+        validMoney(data.saleAmount) &&
+        validMoney(data.paidAmount) &&
+        validMoney(data.outstanding) &&
+        data.entryType == 'SALE_BALANCE' &&
+        data.updatedAt is timestamp;
+    }
+
+    function validUserProfile(data, uid) {
+      return data.keys().hasOnly(['uid', 'email', 'createdAt']) &&
+        data.uid == uid &&
+        validShortString(data.email, 254) &&
+        data.createdAt is timestamp;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validUserProfile(request.resource.data, uid);
+      allow delete: if false;
+    }
+
+    match /users/{uid}/saleBalances/{saleId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validSaleBalance(request.resource.data, uid);
+      allow delete: if false;
+
+      match /payments/{paymentId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && validPayment(request.resource.data, uid);
+        allow delete: if false;
+      }
+    }
+
+    match /users/{uid}/customerLedgers/{customerId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validCustomerLedger(request.resource.data, uid);
+      allow delete: if false;
+
+      match /entries/{entryId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid) && validLedgerEntry(request.resource.data, uid);
+        allow delete: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -47,15 +47,9 @@
         <label class="field-label" for="bike-color">Color</label>
         <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>palette</mat-icon><input id="bike-color" matInput formControlName="color" placeholder="Red, Black, Silver" /></mat-form-field>
       </div>
-      <div class="quantity-row">
-        <div class="form-control">
-          <label class="field-label" for="purchase-price">Purchase Price</label>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>payments</mat-icon><input id="purchase-price" matInput type="number" formControlName="purchasePrice" /></mat-form-field>
-        </div>
-        <div class="form-control">
-          <label class="field-label" for="sale-price">Sale Price</label>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>sell</mat-icon><input id="sale-price" matInput type="number" formControlName="salePrice" /></mat-form-field>
-        </div>
+      <div class="form-control">
+        <label class="field-label" for="purchase-price">Purchase Price</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>payments</mat-icon><input id="purchase-price" matInput type="number" formControlName="purchasePrice" /></mat-form-field>
       </div>
       <div class="form-control">
         <label class="field-label" for="stock-quantity">Stock Quantity</label>
@@ -89,7 +83,7 @@
         <ng-container matColumnDef="engine"><th mat-header-cell *matHeaderCellDef>Engine</th><td mat-cell *matCellDef="let row">{{ row.engineCc }} CC</td></ng-container>
         <ng-container matColumnDef="color"><th mat-header-cell *matHeaderCellDef>Color</th><td mat-cell *matCellDef="let row">{{ row.color }}</td></ng-container>
         <ng-container matColumnDef="purchase"><th mat-header-cell *matHeaderCellDef>Purchase</th><td mat-cell *matCellDef="let row">{{ row.purchasePrice | currency:'PKR ':'symbol':'1.0-0' }}</td></ng-container>
-        <ng-container matColumnDef="sale"><th mat-header-cell *matHeaderCellDef>Sale</th><td mat-cell *matCellDef="let row">{{ row.salePrice | currency:'PKR ':'symbol':'1.0-0' }}</td></ng-container>
+        <!-- Sale Price column is intentionally hidden from Bike Inventory. -->
         <ng-container matColumnDef="quantity">
           <th mat-header-cell *matHeaderCellDef>Stock Qty</th>
           <td mat-cell *matCellDef="let row">{{ row.openingQuantity }}</td>

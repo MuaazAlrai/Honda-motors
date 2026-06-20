@@ -29,6 +29,20 @@ export class PurchaseService {
     return entity;
   }
 
+  update(id: string, input: PurchaseInput): Purchase {
+    if (!this.bikes.getById(input.bikeId)) throw new Error('Bike model not found.');
+    if (!Number.isInteger(input.quantity) || input.quantity < 1) {
+      throw new Error('Purchase quantity must be a whole number greater than zero.');
+    }
+    if (input.purchasePricePerBike < 0) throw new Error('Purchase price cannot be negative.');
+    const entity = this.repository.update(id, {
+      ...input,
+      totalCost: input.quantity * input.purchasePricePerBike
+    });
+    this.refresh();
+    return entity;
+  }
+
   delete(id: string): void {
     this.repository.delete(id);
     this.refresh();

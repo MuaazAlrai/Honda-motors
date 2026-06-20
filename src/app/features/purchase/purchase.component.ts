@@ -8,7 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { MatDialog } from '@angular/material/dialog';
 import { UiService } from '../../shared/services/ui.service';
+import { PurchaseEditDialogComponent } from '../../shared/dialogs/purchase-edit-dialog.component';
+import { Purchase } from './purchase.model';
 import { PurchasesService } from './purchase.service';
 
 @Component({
@@ -25,7 +28,12 @@ export class PurchaseComponent {
   readonly selectedBike = computed(() => this.purchasesService.bikes().find((bike) => bike.id === this.formValue().bikeId));
   readonly total = computed(() => Number(this.formValue().quantity || 0) * Number(this.formValue().purchasePricePerBike || 0));
 
-  constructor(formBuilder: FormBuilder, readonly purchasesService: PurchasesService, private readonly ui: UiService) {
+  constructor(
+    formBuilder: FormBuilder,
+    readonly purchasesService: PurchasesService,
+    private readonly ui: UiService,
+    private readonly dialog: MatDialog
+  ) {
     this.form = formBuilder.nonNullable.group({
       supplierName: ['', Validators.required],
       bikeId: [purchasesService.bikes()[0]?.id ?? '', Validators.required],
@@ -49,10 +57,38 @@ export class PurchaseComponent {
     }
   }
 
+  editPurchase(purchase: Purchase): void {
+    this.dialog.open(PurchaseEditDialogComponent, {
+      data: {
+        purchase,
+        bikes: this.purchasesService.bikes(),
+        bikeLocked: this.purchasesService.hasRelatedSales(purchase.id)
+      },
+      width: '720px',
+      maxWidth: '95vw'
+    }).afterClosed().subscribe((input) => {
+      if (!input) return;
+      try {
+        this.purchasesService.updatePurchase(purchase.id, input);
+        this.ui.success('Purchase updated.');
+      } catch (error) {
+        this.ui.error((error as Error).message);
+      }
+    });
+  }
+
   deletePurchase(id: string): void {
+    if (this.purchasesService.hasRelatedSales(id)) {
+      this.ui.error('This purchase batch has related sales and cannot be deleted.');
+      return;
+    }
     this.ui.confirm({ title: 'Delete bike purchase?', message: 'Inventory and average purchase cost will be recalculated.' }).subscribe(() => {
-      this.purchasesService.deletePurchase(id);
-      this.ui.success('Bike purchase deleted.');
+      try {
+        this.purchasesService.deletePurchase(id);
+        this.ui.success('Purchase deleted.');
+      } catch (error) {
+        this.ui.error((error as Error).message);
+      }
     });
   }
 }

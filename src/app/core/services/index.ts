@@ -4,3 +4,4 @@ export * from './sale.service';
 export * from './expense.service';
 export * from './dashboard.service';
 export * from './inventory.service';
+export * from './payment.service';

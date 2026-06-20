@@ -8,6 +8,8 @@ export interface DashboardMetrics {
   lowStockCount: number;
   bikeModelCount: number;
   bestSellingBike: string;
+  cashInHand: number;
+  outstandingCredit: number;
 }
 
 export interface ActivityItem {
