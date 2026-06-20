@@ -23,12 +23,14 @@ import {
   setDoc
 } from '@angular/fire/firestore';
 import { firstValueFrom } from 'rxjs';
+import { StorageService } from '../core/storage/storage.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly operationTimeoutMs = 20_000;
   private readonly auth = inject(Auth);
   private readonly firestore = inject(Firestore);
+  private readonly storage = inject(StorageService);
 
   readonly user$ = authState(this.auth);
 
@@ -38,10 +40,12 @@ export class AuthService {
       rememberMe ? browserLocalPersistence : browserSessionPersistence
     );
 
-    return this.withTimeout(
+    const credential = await this.withTimeout(
       signInWithEmailAndPassword(this.auth, email.trim(), password),
       'Login timed out. Check your connection and try again.'
     );
+    await this.storage.hydrateForUser(credential.user.uid);
+    return credential;
   }
 
   async register(email: string, password: string) {
@@ -128,6 +132,10 @@ export class AuthService {
 
   waitForCurrentUser(): Promise<User | null> {
     return firstValueFrom(this.user$);
+  }
+
+  prepareUserData(user: User): Promise<void> {
+    return this.storage.hydrateForUser(user.uid);
   }
 
   private withTimeout<T>(operation: Promise<T>, message: string): Promise<T> {

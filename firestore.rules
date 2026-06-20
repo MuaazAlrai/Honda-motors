@@ -96,9 +96,22 @@ service cloud.firestore {
         data.createdAt is timestamp;
     }
 
+    function validErpSnapshot(data, uid) {
+      return data.keys().hasOnly(['ownerId', 'data', 'updatedAt']) &&
+        data.ownerId == uid &&
+        data.data is map &&
+        data.updatedAt is timestamp;
+    }
+
     match /users/{uid} {
       allow read: if isOwner(uid);
       allow create, update: if isOwner(uid) && validUserProfile(request.resource.data, uid);
+      allow delete: if false;
+    }
+
+    match /users/{uid}/erpData/{documentId} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && validErpSnapshot(request.resource.data, uid);
       allow delete: if false;
     }
 

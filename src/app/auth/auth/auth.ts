@@ -144,7 +144,10 @@ export class AuthComponent implements OnInit, AfterViewInit {
 
   private async redirectAuthenticatedUser(): Promise<void> {
     const user = await this.auth.waitForCurrentUser();
-    if (user) await this.router.navigateByUrl('/dashboard');
+    if (user) {
+      await this.auth.prepareUserData(user);
+      await this.router.navigateByUrl('/dashboard');
+    }
   }
 
   private authErrorMessage(error: unknown): string {
