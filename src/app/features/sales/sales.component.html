@@ -45,19 +45,11 @@
 
       <!-- OPTIONS -->
       <div class="invoice-options">
-        <div class="color-choice">
-          <mat-slide-toggle formControlName="specificColor">
-            Sell by specific color
-          </mat-slide-toggle>
-          <small>Off uses stock from all colors.</small>
-        </div>
-
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Payment Method</mat-label>
           <mat-select formControlName="paymentMethod">
-            @for (method of ['Cash', 'Bank Transfer', 'Card', 'Installment', 'Other']; track method) {
-              <mat-option [value]="method">{{ method }}</mat-option>
-            }
+            <mat-option value="Cash">Cash</mat-option>
+            <mat-option value="Installment">Installment</mat-option>
           </mat-select>
         </mat-form-field>
       </div>
@@ -89,7 +81,6 @@
                 @for (bike of stockOptions(); track bike.id) {
                   <mat-option [value]="bike.id">
                     {{ bike.bikeName }}
-                    {{ specificColor() ? ' ' + bike.color : '' }}
                     ({{ bike.availableStock }} available)
                   </mat-option>
                 }
@@ -155,19 +146,8 @@
       <div class="payment-fields">
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>Payment Type</mat-label>
-          <mat-select formControlName="paymentType">
-            <mat-option value="FULL">Full Payment</mat-option>
-            <mat-option value="PARTIAL">Partial Payment</mat-option>
-            <mat-option value="CREDIT">Credit Sale</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Paid Amount</mat-label>
-          <input matInput type="number" min="0"
-            formControlName="paidAmount"
-            [readonly]="form.controls.paymentType.value !== 'PARTIAL'" />
+          <input matInput type="number" min="0" formControlName="paidAmount" />
         </mat-form-field>
 
       </div>
@@ -203,89 +183,127 @@
 
 <section class="recent-sales glass-card">
   <div class="section-heading">
-    <div><span>SALES LEDGER</span><h2>Bike Sales History</h2></div>
-    <strong>{{ salesService.sales().length }} records</strong>
+    <div><span>CUSTOMER LEDGER</span><h2>Customer Sales History</h2></div>
+    <strong>{{ filteredCustomerSales().length }} / {{ salesService.customerSales().length }} customers</strong>
+  </div>
+
+  <div class="search-bar">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search by customer name or contact</mat-label>
+      <input matInput [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" />
+      @if (searchQuery()) {
+        <button matSuffix mat-icon-button (click)="searchQuery.set('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
   </div>
 
   <div class="table-wrap">
-    <table mat-table [dataSource]="salesService.saleViews()">
-      <ng-container matColumnDef="invoice">
-        <th mat-header-cell *matHeaderCellDef>Invoice</th>
-        <td mat-cell *matCellDef="let row"><strong>{{ row.invoiceNumber }}</strong></td>
-      </ng-container>
-
+    <table mat-table class="mobile-card-table" [dataSource]="filteredCustomerSales()">
       <ng-container matColumnDef="customer">
         <th mat-header-cell *matHeaderCellDef>Customer</th>
-        <td mat-cell *matCellDef="let row"><strong>{{ row.customerName }}</strong></td>
+        <td mat-cell *matCellDef="let row" data-label="Customer"><strong>{{ row.customerName }}</strong></td>
       </ng-container>
 
       <ng-container matColumnDef="contact">
         <th mat-header-cell *matHeaderCellDef>Contact</th>
-        <td mat-cell *matCellDef="let row">{{ row.customerContact }}</td>
+        <td mat-cell *matCellDef="let row" data-label="Contact">{{ row.customerContact }}</td>
       </ng-container>
 
-      <ng-container matColumnDef="items">
-        <th mat-header-cell *matHeaderCellDef>Bikes Purchased</th>
-        <td mat-cell *matCellDef="let row">
+      <ng-container matColumnDef="purchases">
+        <th mat-header-cell *matHeaderCellDef>All Bikes Purchased</th>
+        <td mat-cell *matCellDef="let row" data-label="Purchases">
           <div class="history-items">
-            @for (item of row.itemsView; track item.id) {
-              <span>
-                <b>{{ item.bikeName }}{{ item.specificColor && item.color ? ' ' + item.color : '' }}</b>
-                <small>Qty {{ item.quantity }} × {{ item.salePricePerBike | currency:'PKR ':'symbol':'1.0-0' }}</small>
-              </span>
+            @for (sale of row.sales; track sale.id) {
+              @for (item of sale.itemsView; track item.id) {
+                <span>
+                  <b>{{ item.bikeName }} x{{ item.quantity }}</b>
+                  <small>{{ sale.saleDate | date:'mediumDate' }} · {{ sale.invoiceNumber }}</small>
+                </span>
+              }
             }
           </div>
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="invoices">
+        <th mat-header-cell *matHeaderCellDef>Invoices</th>
+        <td mat-cell *matCellDef="let row" data-label="Invoices">{{ row.totalInvoices }}</td>
+      </ng-container>
+
       <ng-container matColumnDef="quantity">
         <th mat-header-cell *matHeaderCellDef>Total Bikes</th>
-        <td mat-cell *matCellDef="let row">{{ row.quantity }}</td>
+        <td mat-cell *matCellDef="let row" data-label="Total Bikes">{{ row.totalBikes }}</td>
       </ng-container>
 
       <ng-container matColumnDef="revenue">
         <th mat-header-cell *matHeaderCellDef>Total Bill</th>
-        <td mat-cell *matCellDef="let row"><strong>{{ row.totalRevenue | currency:'PKR ':'symbol':'1.0-0' }}</strong></td>
+        <td mat-cell *matCellDef="let row" data-label="Total Bill"><strong>{{ row.totalAmount | currency:'PKR ':'symbol':'1.0-0' }}</strong></td>
       </ng-container>
 
       <ng-container matColumnDef="paid">
-        <th mat-header-cell *matHeaderCellDef>Paid</th>
-        <td mat-cell *matCellDef="let row" class="paid-value">{{ (row.paidAmount ?? row.totalRevenue) | currency:'PKR ':'symbol':'1.0-0' }}</td>
+        <th mat-header-cell *matHeaderCellDef class="header-paid">✓ Paid</th>
+        <td mat-cell *matCellDef="let row" class="paid-value" data-label="✓ Paid">{{ row.totalPaid | currency:'PKR ':'symbol':'1.0-0' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="remaining">
-        <th mat-header-cell *matHeaderCellDef>Remaining</th>
-        <td mat-cell *matCellDef="let row" class="remaining-value" [class.cleared]="(row.remainingAmount ?? 0) === 0">{{ (row.remainingAmount ?? 0) | currency:'PKR ':'symbol':'1.0-0' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="paymentMethod">
-        <th mat-header-cell *matHeaderCellDef>Payment Method</th>
-        <td mat-cell *matCellDef="let row">{{ row.paymentMethod || 'Cash' }}</td>
+        <th mat-header-cell *matHeaderCellDef class="header-remaining">⚠ Remaining</th>
+        <td mat-cell *matCellDef="let row" class="remaining-value" [class.cleared]="row.totalRemaining === 0" data-label="⚠ Remaining">{{ row.totalRemaining | currency:'PKR ':'symbol':'1.0-0' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let row"><span class="payment-status" [class]="(row.paymentStatus ?? 'PAID').toLowerCase()">{{ row.paymentStatus ?? 'PAID' }}</span></td>
+        <td mat-cell *matCellDef="let row" data-label="Status"><span class="payment-status" [class.credit]="row.paymentStatus === 'CREDIT'" [class.paid]="row.paymentStatus === 'PAID'" [class.partial]="row.paymentStatus === 'PARTIAL'">{{ row.paymentStatus }}</span></td>
       </ng-container>
 
       <ng-container matColumnDef="date">
-        <th mat-header-cell *matHeaderCellDef>Sale Date</th>
-        <td mat-cell *matCellDef="let row">{{ row.saleDate | date:'mediumDate' }}</td>
+        <th mat-header-cell *matHeaderCellDef>Last Purchase</th>
+        <td mat-cell *matCellDef="let row" data-label="Last Purchase">{{ row.lastSaleDate | date:'mediumDate' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="notes">
         <th mat-header-cell *matHeaderCellDef>Notes</th>
-        <td mat-cell *matCellDef="let row"><span class="history-notes" [title]="row.notes">{{ row.notes || '—' }}</span></td>
+        <td mat-cell *matCellDef="let row" data-label="Notes"><span class="history-notes" [title]="row.notes">{{ row.notes || '—' }}</span></td>
       </ng-container>
 
       <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Actions</th>
-        <td mat-cell *matCellDef="let row">
-          @if ((row.remainingAmount ?? 0) > 0) {
-            <button mat-icon-button class="payment-button" title="Add Payment" (click)="addPayment(row)"><mat-icon>add_card</mat-icon></button>
-          }
-          <button mat-icon-button title="Edit Sale" (click)="editSale(row)"><mat-icon>edit</mat-icon></button>
-          <button mat-icon-button class="delete-button" title="Delete Sale" (click)="deleteSale(row.id)"><mat-icon>delete_outline</mat-icon></button>
+        <th mat-header-cell *matHeaderCellDef>Invoice Actions</th>
+        <td mat-cell *matCellDef="let row" data-label="Actions">
+          <div class="customer-invoice-actions">
+            @for (sale of row.sales; track sale.id) {
+              <div class="invoice-block">
+                <div class="invoice-header">
+                  <small>{{ sale.invoiceNumber }}</small>
+                  <span class="pay-method" [class.installment-method]="sale.paymentMethod === 'Installment'">{{ sale.paymentMethod }}</span>
+                  <button mat-icon-button class="history-btn" [class.active]="isInvoiceExpanded(sale.id)" title="Payment History" (click)="toggleInvoice(sale.id)">
+                    <mat-icon>history</mat-icon>
+                  </button>
+                  @if ((sale.remainingAmount ?? 0) > 0) {
+                    <button mat-icon-button class="payment-button" title="Add Payment" (click)="addPayment(sale)"><mat-icon>add_card</mat-icon></button>
+                  }
+                  <button mat-icon-button title="Edit Sale" (click)="editSale(sale)"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button class="delete-button" title="Delete Sale" (click)="deleteSale(sale.id)"><mat-icon>delete_outline</mat-icon></button>
+                </div>
+                @if (isInvoiceExpanded(sale.id)) {
+                  <div class="payment-history-panel">
+                    <div class="ph-label"><mat-icon>payment</mat-icon> Payment History</div>
+                    @for (p of getPaymentsFor(sale.id); track p.id) {
+                      <div class="ph-row">
+                        <span class="ph-date">{{ p.paymentDate | date:'dd-MMM-yyyy' }}</span>
+                        <span class="ph-amount">{{ p.amount | currency:'PKR ':'symbol':'1.0-0' }}</span>
+                        @if (p.notes) { <span class="ph-notes">{{ p.notes }}</span> }
+                      </div>
+                    }
+                    @if (!getPaymentsFor(sale.id).length) {
+                      <span class="ph-empty">No payments recorded</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </td>
       </ng-container>
 
@@ -294,7 +312,7 @@
     </table>
   </div>
 
-  @if (!salesService.sales().length) {
+  @if (!salesService.customerSales().length) {
     <div class="sales-empty"><mat-icon>receipt_long</mat-icon><h3>No sales recorded</h3><p>Saved sales will appear here.</p></div>
   }
 </section>

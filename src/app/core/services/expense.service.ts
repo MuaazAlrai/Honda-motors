@@ -14,7 +14,12 @@ export class ExpenseService {
   }
 
   create(input: ExpenseInput): Expense {
-    const entity = this.repository.create(input);
+    const entity = this.repository.create({
+      category: 'Other',
+      notes: '',
+      date: this.today(),
+      ...input
+    });
     this.refresh();
     return entity;
   }
@@ -30,7 +35,19 @@ export class ExpenseService {
     this.refresh();
   }
 
+  saveExpense(input: ExpenseInput): Expense {
+    return this.create(input);
+  }
+
+  deleteExpense(id: string): void {
+    this.delete(id);
+  }
+
   refresh(): void {
     this.state.set(this.repository.getAll());
+  }
+
+  private today(): string {
+    return new Date().toISOString().split('T')[0];
   }
 }

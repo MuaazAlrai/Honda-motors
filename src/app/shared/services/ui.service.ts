@@ -6,20 +6,35 @@ import {
   ConfirmDialogComponent,
   ConfirmDialogData
 } from '../dialogs/confirm-dialog.component';
+import { SuccessNotificationComponent } from '../dialogs/success-notification.component';
 
 @Injectable({ providedIn: 'root' })
 export class UiService {
+  private readonly topSnackbar = {
+    horizontalPosition: 'center' as const,
+    verticalPosition: 'top' as const
+  };
+
   constructor(
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog
   ) {}
 
   success(message: string): void {
-    this.snackBar.open(message, 'Close', { duration: 2800, panelClass: 'success-snackbar' });
+    this.dialog.open(SuccessNotificationComponent, {
+      data: message,
+      width: '320px',
+      maxWidth: '92vw',
+      panelClass: 'success-dialog-panel'
+    });
   }
 
   error(message: string): void {
-    this.snackBar.open(message, 'Close', { duration: 4000, panelClass: 'error-snackbar' });
+    this.snackBar.open(message, 'Close', {
+      ...this.topSnackbar,
+      duration: 4000,
+      panelClass: 'error-snackbar'
+    });
   }
 
   confirm(data: ConfirmDialogData): Observable<boolean> {

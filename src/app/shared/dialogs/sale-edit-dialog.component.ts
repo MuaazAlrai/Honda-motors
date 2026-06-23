@@ -18,7 +18,6 @@ import { Sale, SaleUpdate } from '../../features/sales/sales.model';
         <mat-form-field appearance="outline"><mat-label>Customer Name</mat-label><input matInput formControlName="customerName" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Sale Date</mat-label><input matInput type="date" formControlName="saleDate" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Total Quantity</mat-label><input matInput type="number" formControlName="quantity" /><mat-hint>{{ isMultiItem ? 'Invoice items cannot be changed from this dialog' : '' }}</mat-hint></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Average Sale Price</mat-label><input matInput type="number" formControlName="salePricePerBike" /></mat-form-field>
         <mat-form-field appearance="outline" class="full-span"><mat-label>Payment Method</mat-label><mat-select formControlName="paymentMethod">
           @for (method of paymentMethods; track method) { <mat-option [value]="method">{{ method }}</mat-option> }
         </mat-select></mat-form-field>
@@ -37,7 +36,7 @@ import { Sale, SaleUpdate } from '../../features/sales/sales.model';
   `]
 })
 export class SaleEditDialogComponent {
-  readonly paymentMethods = ['Cash', 'Bank Transfer', 'Card', 'Installment', 'Other'];
+  readonly paymentMethods = ['Cash', 'Installment'];
   readonly isMultiItem: boolean;
   readonly form;
 

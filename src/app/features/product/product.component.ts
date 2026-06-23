@@ -7,8 +7,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { BikeService } from '../../core/services/bike.service';
-import { PurchaseService } from '../../core/services/purchase.service';
-import { SaleService } from '../../core/services/sale.service';
 import { UiService } from '../../shared/services/ui.service';
 
 @Component({
@@ -27,22 +25,32 @@ import { UiService } from '../../shared/services/ui.service';
   styleUrl: './product.component.scss'
 })
 export class ProductComponent {
-  readonly displayedColumns = ['id', 'bike', 'year', 'engine', 'color', 'purchase', 'quantity', 'actions'];
-  readonly nextBikeId = computed(() => this.bikeService.bikes().length + 1);
+  readonly displayedColumns = ['bike', 'purchase', 'quantity'];
+  readonly catalog = computed(() => {
+    const models = new Map<string, ReturnType<BikeService['bikes']>[number]>();
+    for (const bike of this.bikeService.bikes()) {
+      const key = bike.bikeName.trim().replace(/\s+/g, ' ').toLowerCase();
+      const existing = models.get(key);
+      if (existing) {
+        existing.openingQuantity += bike.openingQuantity;
+      } else {
+        models.set(key, { ...bike });
+      }
+    }
+    return [...models.values()];
+  });
   readonly form;
 
   constructor(
     formBuilder: FormBuilder,
     readonly bikeService: BikeService,
-    private readonly purchaseService: PurchaseService,
-    private readonly saleService: SaleService,
     private readonly ui: UiService
   ) {
     this.form = formBuilder.nonNullable.group({
       bikeName: ['', [Validators.required, Validators.maxLength(100)]],
       modelYear: [new Date().getFullYear(), [Validators.required, Validators.min(1950)]],
-      engineCc: [70, [Validators.required, Validators.min(1)]],
-      color: ['', [Validators.required, Validators.maxLength(40)]],
+      engineCc: [0],
+      color: [''],
       purchasePrice: [0, [Validators.required, Validators.min(0)]],
       salePrice: [0, [Validators.required, Validators.min(0)]],
       openingQuantity: [0, [Validators.required, Validators.min(0)]],
@@ -59,7 +67,7 @@ export class ProductComponent {
       this.form.reset({
         bikeName: '',
         modelYear: new Date().getFullYear(),
-        engineCc: 70,
+        engineCc: 0,
         color: '',
         purchasePrice: 0,
         salePrice: 0,
@@ -71,21 +79,4 @@ export class ProductComponent {
     }
   }
 
-  removeBike(id: string, name: string): void {
-    const inUse =
-      this.purchaseService.purchases().some((item) => item.bikeId === id) ||
-      this.saleService.sales().some((item) =>
-        item.bikeId === id || item.allocations?.some((allocation) => allocation.bikeId === id)
-      );
-    if (inUse) {
-      this.ui.error('This bike has transactions and cannot be deleted.');
-      return;
-    }
-    this.ui
-      .confirm({ title: 'Delete bike model?', message: `${name} will be permanently removed.` })
-      .subscribe(() => {
-        this.bikeService.delete(id);
-        this.ui.success('Bike model deleted.');
-      });
-  }
 }

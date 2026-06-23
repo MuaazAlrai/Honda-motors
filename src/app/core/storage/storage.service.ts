@@ -1,6 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
-import { Firestore, doc, getDoc, serverTimestamp, setDoc } from '@angular/fire/firestore';
+import {
+  Firestore,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  serverTimestamp,
+  setDoc
+} from '@angular/fire/firestore';
 
 interface ErpSnapshot {
   ownerId: string;
@@ -60,13 +69,28 @@ export class StorageService {
     await this.syncToFirestore(uid);
   }
 
-  clearApplicationData(): void {
+  async clearApplicationData(): Promise<void> {
     const uid = this.auth.currentUser?.uid;
-    const prefix = uid ? `${this.accountPrefix}${uid}:` : this.legacyPrefix;
+    clearTimeout(this.syncTimer);
+
+    const prefixes = uid
+      ? [`${this.accountPrefix}${uid}:`, this.legacyPrefix]
+      : [this.legacyPrefix];
     Object.keys(localStorage)
-      .filter((key) => key.startsWith(prefix))
+      .filter((key) =>
+        prefixes.some((prefix) => key.startsWith(prefix)) &&
+        (!uid || !key.startsWith(this.accountPrefix) || key.startsWith(`${this.accountPrefix}${uid}:`))
+      )
       .forEach((key) => localStorage.removeItem(key));
-    this.scheduleCloudSync();
+
+    if (!uid) return;
+
+    await setDoc(doc(this.firestore, 'users', uid, 'erpData', 'snapshot'), {
+      ownerId: uid,
+      data: {},
+      updatedAt: serverTimestamp()
+    });
+    await this.clearPaymentData(uid);
   }
 
   private storageKey(key: string): string {
@@ -121,6 +145,22 @@ export class StorageService {
       });
     } catch (error) {
       console.error('Could not back up ERP data to Firestore.', error);
+    }
+  }
+
+  private async clearPaymentData(uid: string): Promise<void> {
+    const balances = await getDocs(collection(this.firestore, 'users', uid, 'saleBalances'));
+    for (const balance of balances.docs) {
+      const payments = await getDocs(collection(balance.ref, 'payments'));
+      await Promise.all(payments.docs.map((payment) => deleteDoc(payment.ref)));
+      await deleteDoc(balance.ref);
+    }
+
+    const ledgers = await getDocs(collection(this.firestore, 'users', uid, 'customerLedgers'));
+    for (const ledger of ledgers.docs) {
+      const entries = await getDocs(collection(ledger.ref, 'entries'));
+      await Promise.all(entries.docs.map((entry) => deleteDoc(entry.ref)));
+      await deleteDoc(ledger.ref);
     }
   }
 }

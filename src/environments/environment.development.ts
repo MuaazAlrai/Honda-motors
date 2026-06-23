@@ -3,12 +3,12 @@ export const environment = {
   apiBaseUrl: 'https://localhost:7001/api',
   persistence: 'localStorage' as 'localStorage' | 'api',
   firebase: {
-    apiKey: 'AIzaSyClg4NFjz3Y83vKuG62HZRsRxvLjpPbvU4',
-    authDomain: 'motorcycle-project-2c128.firebaseapp.com',
-    projectId: 'motorcycle-project-2c128',
-    storageBucket: 'motorcycle-project-2c128.firebasestorage.app',
-    messagingSenderId: '718325021744',
-    appId: '1:718325021744:web:b3ef11c84d8421ea9c41f5',
-    measurementId: 'G-DDLN3HNH4Y'
+    apiKey: "AIzaSyBUvZY3NGhCqbLOjez3uxamwpI1bjpmKyo",
+  authDomain: "marimotors-4b5c6.firebaseapp.com",
+  projectId: "marimotors-4b5c6",
+  storageBucket: "marimotors-4b5c6.firebasestorage.app",
+  messagingSenderId: "535643698494",
+  appId: "1:535643698494:web:8544eae25d7c49502a686f",
+  measurementId: "G-RHY12FZWJ2"
   }
 };

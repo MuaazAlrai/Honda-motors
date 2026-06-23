@@ -1,4 +1,4 @@
-﻿:host { display: block; }
+:host { display: block; }
 
 .product-layout {
   display: grid;
@@ -35,5 +35,38 @@ mat-form-field { width: 100%; }
   .product-form-card { padding: 22px 18px; }
   .quantity-row { grid-template-columns: 1fr; gap: 0; }
   .company-title strong { font-size: 15px; }
+  .product-id { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .product-list table { min-width: 0; }
 }
 
+@media (max-width: 640px) {
+  .section-title span {
+    font-size: 14px !important;
+  }
+  .section-title h2 {
+    font-size: 28px !important;
+  }
+  .section-title > strong {
+    font-size: 20px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    border-radius: 14px !important;
+  }
+  .mobile-card-table .mat-mdc-row {
+    padding: 18px !important;
+  }
+  .mobile-card-table .mat-mdc-cell {
+    font-size: 21px !important;
+    padding: 12px 0 !important;
+  }
+  .mobile-card-table .mat-mdc-cell strong {
+    font-size: 21px !important;
+  }
+  .mobile-card-table .mat-mdc-cell::before {
+    font-size: 16px !important;
+  }
+}
+@media (max-width: 420px) {
+  .product-form-card { padding: 18px 14px; }
+  .company-title { align-items: flex-start; }
+}

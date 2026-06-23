@@ -8,12 +8,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { SaleEditDialogComponent } from '../../shared/dialogs/sale-edit-dialog.component';
 import { AddPaymentDialogComponent } from '../../shared/dialogs/add-payment-dialog.component';
+import { PasswordConfirmDialogComponent } from '../../shared/dialogs/password-confirm-dialog.component';
 import { UiService } from '../../shared/services/ui.service';
-import { PaymentType, Sale } from './sales.model';
+import { PaymentType, Sale, SalePayment } from './sales.model';
 import { SalesService } from './sales.service';
 
 @Component({
@@ -28,7 +28,6 @@ import { SalesService } from './sales.service';
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    MatSlideToggleModule,
     MatTableModule
   ],
   templateUrl: './sales.component.html',
@@ -36,28 +35,45 @@ import { SalesService } from './sales.service';
 })
 export class SalesComponent {
   readonly displayedColumns = [
-    'invoice',
     'customer',
     'contact',
-    'items',
+    'purchases',
+    'invoices',
     'quantity',
     'revenue',
     'paid',
     'remaining',
-    'paymentMethod',
     'status',
     'date',
-    'notes',
     'actions'
   ];
   readonly stockError = signal('');
+  readonly searchQuery = signal('');
   readonly form;
   readonly formValue;
 
-  readonly specificColor = computed(() => Boolean(this.formValue().specificColor));
-  readonly stockOptions = computed(() =>
-    this.specificColor() ? this.salesService.colorStock() : this.salesService.availableModels()
-  );
+  private readonly expandedInvoices = signal<Set<string>>(new Set());
+
+  readonly filteredCustomerSales = computed(() => {
+    const q = this.searchQuery().trim().toLowerCase();
+    if (!q) return this.salesService.customerSales();
+    return this.salesService.customerSales().filter(c =>
+      c.customerName.toLowerCase().includes(q) ||
+      c.customerContact.toLowerCase().includes(q)
+    );
+  });
+
+  readonly paymentsBySaleId = computed(() => {
+    const map = new Map<string, SalePayment[]>();
+    for (const payment of this.salesService.payments()) {
+      const list = map.get(payment.saleId) ?? [];
+      list.push(payment);
+      map.set(payment.saleId, list);
+    }
+    return map;
+  });
+
+  readonly stockOptions = computed(() => this.salesService.availableModels());
   readonly totalQuantity = computed(() =>
     (this.formValue().items ?? []).reduce((total, item) => total + Number(item?.quantity ?? 0), 0)
   );
@@ -67,12 +83,9 @@ export class SalesComponent {
       0
     )
   );
-  readonly effectivePaidAmount = computed(() => {
-    const type = this.formValue().paymentType;
-    if (type === 'FULL') return this.grandTotal();
-    if (type === 'CREDIT') return 0;
-    return Number(this.formValue().paidAmount || 0);
-  });
+  readonly effectivePaidAmount = computed(() =>
+    Number(this.formValue().paidAmount || 0)
+  );
   readonly remainingAmount = computed(() =>
     Math.max(0, this.grandTotal() - this.effectivePaidAmount())
   );
@@ -87,22 +100,11 @@ export class SalesComponent {
       customerName: ['', Validators.required],
       customerContact: ['', Validators.required],
       paymentMethod: ['Cash', Validators.required],
-      paymentType: formBuilder.nonNullable.control<PaymentType>('FULL', Validators.required),
       paidAmount: [0, [Validators.required, Validators.min(0)]],
       notes: [''],
-      specificColor: [false],
       items: formBuilder.nonNullable.array([this.createItem()])
     });
     this.formValue = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
-    this.form.controls.specificColor.valueChanges.subscribe(() => {
-      this.stockError.set('');
-      const firstId = this.stockOptions()[0]?.id ?? '';
-      this.items.controls.forEach((item) => item.controls.bikeId.setValue(firstId));
-    });
-    this.form.controls.paymentType.valueChanges.subscribe((type) => {
-      if (type === 'CREDIT') this.form.controls.paidAmount.setValue(0);
-      if (type === 'FULL') this.form.controls.paidAmount.setValue(this.grandTotal());
-    });
   }
 
   get items(): FormArray<SaleItemForm> {
@@ -151,26 +153,23 @@ export class SalesComponent {
         this.stockError.set('Paid amount cannot exceed the total bill.');
         return;
       }
+      const paymentType: PaymentType = paidAmount <= 0 ? 'CREDIT'
+        : paidAmount >= this.grandTotal() ? 'FULL' : 'PARTIAL';
       this.salesService.saveSale({
         customerName: value.customerName,
         customerContact: value.customerContact,
         paymentMethod: value.paymentMethod,
-        paymentType: value.paymentType,
+        paymentType,
         paidAmount,
         notes: value.notes,
-        items: value.items.map((item) => ({
-          ...item,
-          specificColor: value.specificColor
-        }))
+        items: value.items
       });
       this.form.reset({
         customerName: '',
         customerContact: '',
         paymentMethod: 'Cash',
-        paymentType: 'FULL',
         paidAmount: 0,
-        notes: '',
-        specificColor: false
+        notes: ''
       });
       this.items.clear();
       this.items.push(this.createItem());
@@ -213,13 +212,31 @@ export class SalesComponent {
   }
 
   deleteSale(id: string): void {
-    this.ui.confirm({
-      title: 'Delete sales invoice?',
-      message: 'All bikes on this invoice will be returned to inventory.'
-    }).subscribe(() => {
+    this.dialog.open(PasswordConfirmDialogComponent, {
+      width: '440px',
+      maxWidth: '95vw',
+      disableClose: true
+    }).afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
       this.salesService.deleteSale(id);
       this.ui.success('Sale deleted.');
     });
+  }
+
+  toggleInvoice(id: string): void {
+    const next = new Set(this.expandedInvoices());
+    if (next.has(id)) next.delete(id); else next.add(id);
+    this.expandedInvoices.set(next);
+  }
+
+  isInvoiceExpanded(id: string): boolean {
+    return this.expandedInvoices().has(id);
+  }
+
+  getPaymentsFor(saleId: string): SalePayment[] {
+    return (this.paymentsBySaleId().get(saleId) ?? [])
+      .slice()
+      .sort((a, b) => b.paymentDate.localeCompare(a.paymentDate));
   }
 
   private createItem(): SaleItemForm {

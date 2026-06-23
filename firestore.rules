@@ -118,24 +118,24 @@ service cloud.firestore {
     match /users/{uid}/saleBalances/{saleId} {
       allow read: if isOwner(uid);
       allow create, update: if isOwner(uid) && validSaleBalance(request.resource.data, uid);
-      allow delete: if false;
+      allow delete: if isOwner(uid);
 
       match /payments/{paymentId} {
         allow read: if isOwner(uid);
         allow create, update: if isOwner(uid) && validPayment(request.resource.data, uid);
-        allow delete: if false;
+        allow delete: if isOwner(uid);
       }
     }
 
     match /users/{uid}/customerLedgers/{customerId} {
       allow read: if isOwner(uid);
       allow create, update: if isOwner(uid) && validCustomerLedger(request.resource.data, uid);
-      allow delete: if false;
+      allow delete: if isOwner(uid);
 
       match /entries/{entryId} {
         allow read: if isOwner(uid);
         allow create, update: if isOwner(uid) && validLedgerEntry(request.resource.data, uid);
-        allow delete: if false;
+        allow delete: if isOwner(uid);
       }
     }
 

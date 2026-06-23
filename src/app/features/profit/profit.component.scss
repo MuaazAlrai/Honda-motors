@@ -57,11 +57,17 @@
   .performance-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
-  .profit-heading { align-items: flex-start; }
+  .profit-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
   .formula-badge { display: none; }
   .period-grid { grid-template-columns: 1fr; }
   .period-card { padding: 22px 18px; }
   .day-row { grid-template-columns: 1fr auto; }
   .day-row div { display: none; }
 }
-
+@media (max-width: 430px) {
+  .period-card header { grid-template-columns: 42px 1fr; }
+  .status-dot { grid-column: 1 / -1; width: fit-content; }
+  .breakdown { grid-template-columns: 1fr; }
+  .period-card footer { flex-direction: column; }
+  .all-time-card { padding: 22px 18px; }
+}

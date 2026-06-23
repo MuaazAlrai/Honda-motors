@@ -16,8 +16,6 @@ import { Bike, BikeInput } from '../../core/models';
       <mat-dialog-content class="dialog-grid">
         <mat-form-field appearance="outline"><mat-label>Bike Name</mat-label><input matInput formControlName="bikeName" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Model</mat-label><input matInput type="number" formControlName="modelYear" /></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Color</mat-label><input matInput formControlName="color" /></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Engine CC</mat-label><input matInput type="number" formControlName="engineCc" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Purchase Price</mat-label><input matInput type="number" formControlName="purchasePrice" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Sale Price</mat-label><input matInput type="number" formControlName="salePrice" /></mat-form-field>
         <mat-form-field appearance="outline" class="full-span"><mat-label>Quantity</mat-label><input matInput type="number" formControlName="openingQuantity" /></mat-form-field>
@@ -45,8 +43,7 @@ export class StockEditDialogComponent {
     this.form = formBuilder.nonNullable.group({
       bikeName: [data.bikeName, [Validators.required, Validators.maxLength(100)]],
       modelYear: [data.modelYear, [Validators.required, Validators.min(1950)]],
-      color: [data.color, [Validators.required, Validators.maxLength(40)]],
-      engineCc: [data.engineCc, [Validators.required, Validators.min(1)]],
+      engineCc: [data.engineCc],
       purchasePrice: [data.purchasePrice, [Validators.required, Validators.min(0)]],
       salePrice: [data.salePrice, [Validators.required, Validators.min(0)]],
       openingQuantity: [data.openingQuantity, [Validators.required, Validators.min(0), Validators.pattern(/^\d+$/)]]
@@ -55,6 +52,6 @@ export class StockEditDialogComponent {
 
   submit(): void {
     if (this.form.invalid) return this.form.markAllAsTouched();
-    this.ref.close(this.form.getRawValue());
+    this.ref.close({ ...this.data, ...this.form.getRawValue() });
   }
 }

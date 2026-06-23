@@ -1,47 +1,67 @@
-import { computed, inject, Injectable } from '@angular/core';
-import { ExpenseService as LocalExpenseService } from '../../core/services/expense.service';
+import { Injectable } from '@angular/core';
 import { Expense, ExpenseInput, NewExpenseRequest } from './expense.model';
 
 @Injectable({ providedIn: 'root' })
-export class ExpensesService {
-  private readonly localExpenses = inject(LocalExpenseService);
+export class ExpenseService {
 
-  readonly expenses = this.localExpenses.expenses;
+  private data: Expense[] = [];
 
-  readonly todayExpenses = computed(() => {
-    const today = this.toLocalDate(new Date());
-    return this.expenses().filter((expense) => expense.date === today);
-  });
+  expenses = () => this.data;
 
-  readonly todayTotal = computed(() =>
-    this.todayExpenses().reduce((total, expense) => total + expense.amount, 0)
-  );
+  // ✅ MAIN CREATE METHOD
+  create(request: NewExpenseRequest): Expense {
+    const now = new Date().toISOString();
 
-  readonly allTimeTotal = computed(() =>
-    this.expenses().reduce((total, expense) => total + expense.amount, 0)
-  );
+    const expense: Expense = {
+      id: crypto.randomUUID(),
+      title: request.title,
+      amount: request.amount,
+      category: request.category ?? 'Other',
+      notes: '',
+      date: this.toDate(new Date()),
+      createdAt: now,
+      updatedAt: now
+    };
+
+    this.data = [expense, ...this.data];
+    return expense;
+  }
+
+  // ✅ MAIN UPDATE METHOD
+  update(id: string, input: ExpenseInput): Expense {
+    const index = this.data.findIndex(x => x.id === id);
+    if (index === -1) throw new Error('Expense not found');
+
+    const updated: Expense = {
+      ...this.data[index],
+      ...input,
+      updatedAt: new Date().toISOString()
+    };
+
+    this.data[index] = updated;
+    return updated;
+  }
+
+  // ✅ MAIN DELETE METHOD
+  delete(id: string): void {
+    this.data = this.data.filter(x => x.id !== id);
+  }
+
+  // =========================
+  // ✅ WRAPPER METHODS (FIX FOR YOUR COMPONENT)
+  // =========================
 
   saveExpense(request: NewExpenseRequest): Expense {
-    return this.localExpenses.create({
-      ...request,
-      date: this.toLocalDate(new Date()),
-      notes: ''
-    });
+    return this.create(request);
   }
 
   deleteExpense(id: string): void {
-    this.localExpenses.delete(id);
+    this.delete(id);
   }
 
-  updateExpense(id: string, input: ExpenseInput): Expense {
-    if (input.amount <= 0) throw new Error('Expense amount must be greater than zero.');
-    return this.localExpenses.update(id, input);
-  }
+  // =========================
 
-  private toLocalDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  private toDate(date: Date): string {
+    return date.toISOString().split('T')[0];
   }
 }

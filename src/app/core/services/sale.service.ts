@@ -9,7 +9,7 @@ import {
   PaymentStatus
 } from '../../features/sales/sales.model';
 import { LocalStorageRepository } from '../../repositories/local-storage.repository';
-import { bikeModelKey, bikeNameKey } from '../models';
+import { bikeNameKey } from '../models';
 import { BikeService } from './bike.service';
 import { PurchaseService } from './purchase.service';
 
@@ -25,7 +25,7 @@ export class SaleService {
         ...sale,
         bikeName: itemsView.map((item) => item.bikeName).join(', '),
         itemsView,
-        itemsSummary: itemsView.map((item) => `${item.bikeName}${item.specificColor && item.color ? ` ${item.color}` : ''} x${item.quantity}`).join(' · ')
+        itemsSummary: itemsView.map((item) => `${item.bikeName} x${item.quantity}`).join(', ')
       };
     })
   );
@@ -52,9 +52,6 @@ export class SaleService {
     }
     if (input.paymentType === 'FULL' && input.paidAmount !== totalRevenue) {
       throw new Error('Full payment must equal the total bill.');
-    }
-    if (input.paymentType === 'CREDIT' && input.paidAmount !== 0) {
-      throw new Error('Credit sale paid amount must be zero.');
     }
     const first = items[0];
     const entity = this.repository.create({
@@ -99,7 +96,6 @@ export class SaleService {
     const batches = this.remainingBatches(id);
     const item = this.createItem({
       bikeId: oldItem.bikeId,
-      specificColor: oldItem.specificColor,
       quantity: input.quantity,
       salePricePerBike: input.salePricePerBike
     }, batches);
@@ -154,11 +150,11 @@ export class SaleService {
     this.refresh();
   }
 
-  availableStock(bikeId: string, specificColor = false, excludedSaleId?: string): number {
+  availableStock(bikeId: string, excludedSaleId?: string): number {
     const bike = this.bikes.getById(bikeId);
     if (!bike) return 0;
     return this.remainingBatches(excludedSaleId)
-      .filter((batch) => this.matchesSelection(batch.bikeId, bikeId, specificColor))
+      .filter((batch) => this.matchesSelection(batch.bikeId, bikeId))
       .reduce((sum, batch) => sum + batch.remainingQuantity, 0);
   }
 
@@ -216,8 +212,6 @@ export class SaleService {
       id: `legacy:${sale.id}`,
       bikeId: sale.bikeId,
       bikeName: bike?.bikeName ?? 'Deleted bike',
-      color: bike?.color,
-      specificColor: false,
       quantity: sale.quantity,
       salePricePerBike: sale.salePricePerBike,
       totalRevenue: sale.totalRevenue,
@@ -250,11 +244,11 @@ export class SaleService {
 
     const eligible = batches.filter((batch) =>
       batch.remainingQuantity > 0 &&
-      this.matchesSelection(batch.bikeId, input.bikeId, input.specificColor)
+      this.matchesSelection(batch.bikeId, input.bikeId)
     );
     const available = eligible.reduce((sum, batch) => sum + batch.remainingQuantity, 0);
     if (input.quantity > available) {
-      throw new Error(`Only ${available} bike(s) are available for ${bike.bikeName}${input.specificColor ? ` ${bike.color}` : ''}.`);
+      throw new Error(`Only ${available} bike(s) are available for ${bike.bikeName}.`);
     }
 
     let remaining = input.quantity;
@@ -279,8 +273,6 @@ export class SaleService {
       id: crypto.randomUUID(),
       bikeId: input.bikeId,
       bikeName: bike.bikeName,
-      color: input.specificColor ? bike.color : undefined,
-      specificColor: input.specificColor,
       quantity: input.quantity,
       salePricePerBike: input.salePricePerBike,
       totalRevenue,
@@ -290,13 +282,11 @@ export class SaleService {
     };
   }
 
-  private matchesSelection(candidateBikeId: string, selectedBikeId: string, specificColor: boolean): boolean {
+  private matchesSelection(candidateBikeId: string, selectedBikeId: string): boolean {
     const candidate = this.bikes.getById(candidateBikeId);
     const selected = this.bikes.getById(selectedBikeId);
     if (!candidate || !selected) return false;
-    return specificColor
-      ? bikeModelKey(candidate) === bikeModelKey(selected)
-      : bikeNameKey(candidate.bikeName) === bikeNameKey(selected.bikeName);
+    return bikeNameKey(candidate.bikeName) === bikeNameKey(selected.bikeName);
   }
 
   private remainingBatches(excludedSaleId?: string): InventoryBatch[] {
@@ -322,7 +312,7 @@ export class SaleService {
       for (const item of this.itemsFor(sale)) {
         let remaining = item.quantity;
         const eligible = batches.filter((batch) =>
-          this.matchesSelection(batch.bikeId, item.bikeId, item.specificColor)
+          this.matchesSelection(batch.bikeId, item.bikeId)
         );
         for (const batch of eligible) {
           if (remaining === 0) break;

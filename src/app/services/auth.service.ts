@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import {
   Auth,
+  EmailAuthProvider,
   User,
   authState,
   browserLocalPersistence,
@@ -8,6 +9,7 @@ import {
   confirmPasswordReset,
   createUserWithEmailAndPassword,
   deleteUser,
+  reauthenticateWithCredential,
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
@@ -120,6 +122,21 @@ export class AuthService {
     }
 
     return firebaseUpdatePassword(user, newPassword);
+  }
+
+  reauthenticateWithPassword(password: string): Promise<void> {
+    const user = this.auth.currentUser;
+    const email = user?.email;
+
+    if (!user || !email) {
+      return Promise.reject(new Error('You must be signed in again before resetting data.'));
+    }
+
+    const credential = EmailAuthProvider.credential(email, password);
+    return this.withTimeout(
+      reauthenticateWithCredential(user, credential).then(() => undefined),
+      'Password confirmation timed out. Check your connection and try again.'
+    );
   }
 
   changeEmail(newEmail: string): Promise<void> {

@@ -1,28 +1,63 @@
 <section class="stock-heading">
-  <div><span class="eyebrow">LIVE SHOWROOM INVENTORY</span><h1><mat-icon>two_wheeler</mat-icon> Bike Stock</h1><p>Opening stock + purchases − sales, updated automatically</p></div>
+  <div><span class="eyebrow">LIVE SHOWROOM INVENTORY</span>
+    <h1><mat-icon>two_wheeler</mat-icon> Bike Stock</h1>
+    <p>Opening stock + purchases − sales, updated automatically</p>
+  </div>
   <!-- <div class="live-badge"><span></span> Live stock ledger</div> -->
 </section>
 <section class="stock-summary">
-  <article class="summary-card glass-card"><span class="summary-icon"><mat-icon>two_wheeler</mat-icon></span><div><small>Available Bikes</small><strong>{{ stockService.totalUnits() }}</strong></div></article>
-  <article class="summary-card glass-card"><span class="summary-icon value"><mat-icon>account_balance_wallet</mat-icon></span><div><small>Inventory Value</small><strong>{{ stockService.totalValue() | currency:'PKR ':'symbol':'1.0-0' }}</strong></div></article>
-  <article class="summary-card glass-card"><span class="summary-icon warning"><mat-icon>warning_amber</mat-icon></span><div><small>Low Stock Models</small><strong>{{ stockService.lowStockCount() }}</strong></div></article>
+  <article class="summary-card glass-card"><span class="summary-icon"><mat-icon>two_wheeler</mat-icon></span>
+    <div><small>Available Bikes</small><strong>{{ stockService.totalUnits() }}</strong></div>
+  </article>
+  <article class="summary-card glass-card"><span
+      class="summary-icon value"><mat-icon>account_balance_wallet</mat-icon></span>
+    <div><small>Inventory Value</small><strong>{{ stockService.totalValue() | currency:'PKR ':'symbol':'1.0-0'
+        }}</strong></div>
+  </article>
+  <article class="summary-card glass-card"><span class="summary-icon warning"><mat-icon>warning_amber</mat-icon></span>
+    <div><small>Low Stock Models</small><strong>{{ stockService.lowStockCount() }}</strong></div>
+  </article>
 </section>
 <section class="stock-panel glass-card">
-  <div class="panel-toolbar"><div><span>BIKE INVENTORY</span><h2>Available Showroom Stock</h2></div><mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>search</mat-icon><input matInput placeholder="Search model, year, engine or color" (input)="search.set($any($event.target).value)" /></mat-form-field></div>
+  <div class="panel-toolbar">
+    <div><span>BIKE INVENTORY</span>
+      <h2>Available Showroom Stock</h2>
+    </div><mat-form-field appearance="outline" subscriptSizing="dynamic"><mat-icon matPrefix>search</mat-icon><input
+        matInput placeholder="Search bike name or model"
+        (input)="search.set($any($event.target).value)" /></mat-form-field>
+  </div>
   <div class="stock-grid">
     @for (item of filteredStock(); track item.id) {
-      <article class="stock-card" [class.low-stock-card]="stockService.isLowStock(item.availableStock)">
-        <div class="card-top">
-          <span class="product-icon"><mat-icon>two_wheeler</mat-icon></span>
-          <div class="product-copy"><strong>{{ item.bikeName }}</strong><small>{{ item.modelYear }} · {{ item.engineCc }} CC · {{ item.color }}</small></div>
-          <div class="stock-number" [class.low]="stockService.isLowStock(item.availableStock)"><strong>{{ item.availableStock }}</strong><span>units</span></div>
-          @if (stockService.isLowStock(item.availableStock)) { <span class="low-stock-badge"><mat-icon>warning</mat-icon>LOW STOCK</span> }
+    <article class="stock-card" [class.low-stock-card]="stockService.isLowStock(item.availableStock)">
+      <div class="card-top">
+        <span class="product-icon"><mat-icon>two_wheeler</mat-icon></span>
+        <div class="product-copy"><strong>{{ item.bikeName }}</strong><small>Model {{ item.modelYear }}</small></div>
+        <div class="stock-number" [class.low]="stockService.isLowStock(item.availableStock)"><strong>{{
+            item.availableStock }}</strong><span>units</span></div>
+        @if (stockService.isLowStock(item.availableStock)) { <span
+          class="low-stock-badge"><mat-icon>warning</mat-icon>LOW STOCK</span> }
+      </div>
+      <div class="stock-flow">
+        <div><span>Opening</span><strong>{{ item.openingQuantity }}</strong></div><mat-icon>remove</mat-icon>
+        <div class="sold"><span>Sold</span><strong>−{{ item.soldQuantity }}</strong></div>
+      </div>
+      <mat-progress-bar mode="determinate" [value]="stockPercentage(item)"
+        [class.low-progress]="stockService.isLowStock(item.availableStock)" />
+      <div class="card-footer">
+        <div><small>Average Purchase Price</small><strong>{{ item.averagePurchasePrice | currency:'PKR
+            ':'symbol':'1.0-0' }}</strong></div>
+        <div><small>Stock Value</small><strong>{{ item.inventoryValue | currency:'PKR ':'symbol':'1.0-0' }}</strong>
         </div>
-        <div class="stock-flow"><div><span>Opening</span><strong>{{ item.openingQuantity }}</strong></div><mat-icon>add</mat-icon><div class="purchased"><span>Purchased</span><strong>+{{ item.purchasedQuantity }}</strong></div><mat-icon>remove</mat-icon><div class="sold"><span>Sold</span><strong>−{{ item.soldQuantity }}</strong></div></div>
-        <mat-progress-bar mode="determinate" [value]="stockPercentage(item)" [class.low-progress]="stockService.isLowStock(item.availableStock)" />
-        <div class="card-footer"><div><small>Average Purchase Price</small><strong>{{ item.averagePurchasePrice | currency:'PKR ':'symbol':'1.0-0' }}</strong></div><div><small>Stock Value</small><strong>{{ item.inventoryValue | currency:'PKR ':'symbol':'1.0-0' }}</strong></div><div class="actions"><button mat-flat-button class="edit-button" (click)="editBike(item)"><mat-icon>edit</mat-icon>Edit</button><button mat-flat-button class="delete-button" (click)="deleteBike(item)"><mat-icon>delete_outline</mat-icon>Delete</button></div></div>
-        @if (stockService.isLowStock(item.availableStock)) { <div class="low-stock-message"><mat-icon>warning_amber</mat-icon>Restock now: fewer than {{ stockService.lowStockLimit }} bikes remain</div> }
-      </article>
-    } @empty { <div class="empty-stock"><mat-icon>two_wheeler</mat-icon><h3>No bikes in inventory</h3><p>Add a bike model to begin managing showroom stock.</p></div> }
+        <div class="actions"><button mat-flat-button class="edit-button"
+            (click)="editBike(item)"><mat-icon>edit</mat-icon>Edit</button><button mat-flat-button class="delete-button"
+            (click)="deleteBike(item)"><mat-icon>delete_outline</mat-icon>Delete</button></div>
+      </div>
+      @if (stockService.isLowStock(item.availableStock)) { <div class="low-stock-message">
+        <mat-icon>warning_amber</mat-icon>Restock now: fewer than {{ stockService.lowStockLimit }} bikes remain</div> }
+    </article>
+    } @empty { <div class="empty-stock"><mat-icon>two_wheeler</mat-icon>
+      <h3>No bikes in inventory</h3>
+      <p>Add a bike model to begin managing showroom stock.</p>
+    </div> }
   </div>
 </section>

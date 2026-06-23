@@ -71,6 +71,8 @@ export class ResetPasswordComponent {
         'Close',
         {
           duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
           panelClass: ['success-snackbar', 'multiline-snackbar']
         }
       );
@@ -85,6 +87,8 @@ export class ResetPasswordComponent {
       this.message = this.errorMessage(error);
       this.snackBar.open(this.message, 'Close', {
         duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
         panelClass: 'error-snackbar'
       });
     } finally {
@@ -116,6 +120,8 @@ export class ResetPasswordComponent {
       this.message = 'Your password has been updated successfully.';
       this.snackBar.open(this.message, 'Close', {
         duration: 4000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
         panelClass: 'success-snackbar'
       });
       setTimeout(() => void this.router.navigateByUrl('/login'), 2000);
@@ -124,6 +130,8 @@ export class ResetPasswordComponent {
       this.message = this.errorMessage(error);
       this.snackBar.open(this.message, 'Close', {
         duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
         panelClass: 'error-snackbar'
       });
     } finally {

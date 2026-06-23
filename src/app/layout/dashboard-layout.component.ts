@@ -10,7 +10,8 @@ import { RouterOutlet } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { StorageService } from '../core/storage/storage.service';
-import { ConfirmDialogComponent } from '../shared/dialogs/confirm-dialog.component';
+import { ResetDataConfirmDialogComponent } from '../shared/dialogs/reset-data-confirm-dialog.component';
+import { UiService } from '../shared/services/ui.service';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { SidebarStateService } from './sidebar-state.service';
 
@@ -66,7 +67,7 @@ import { SidebarStateService } from './sidebar-state.service';
                 <mat-icon>delete_sweep</mat-icon><span>Reset application data</span>
               </button>
             </mat-menu>
-            <div class="dealer-status"><span></span> Showroom Online</div>
+            <!-- <div class="dealer-status"><span></span> Showroom Online</div> -->
           </mat-toolbar>
         </header>
 
@@ -86,6 +87,7 @@ export class DashboardLayoutComponent {
     private readonly auth: AuthService,
     private readonly router: Router,
     private readonly dialog: MatDialog,
+    private readonly ui: UiService,
     readonly sidebarState: SidebarStateService
   ) {
     breakpoints
@@ -101,21 +103,43 @@ export class DashboardLayoutComponent {
 
   clearData(): void {
     this.dialog
-      .open(ConfirmDialogComponent, {
-        width: '430px',
+      .open(ResetDataConfirmDialogComponent, {
+        width: '460px',
         data: {
           title: 'Reset all ERP data?',
-          message: 'Bike inventory, purchases, sales, and expenses will be permanently deleted.',
-          confirmText: 'Reset data'
+          message: 'Bike inventory, purchases, sales, and expenses will be permanently deleted. Type your login password to continue.',
+          confirmText: 'Reset data',
+          cancelText: 'No'
         }
       })
       .afterClosed()
-      .subscribe((confirmed) => {
-        if (confirmed) {
-          this.storage.clearApplicationData();
+      .subscribe(async (password) => {
+        if (!password) return;
+
+        try {
+          await this.auth.reauthenticateWithPassword(password);
+          await this.storage.clearApplicationData();
           location.reload();
+        } catch (error) {
+          console.error('Could not reset application data.', error);
+          this.ui.error(this.resetDataErrorMessage(error));
         }
       });
   }
-}
 
+  private resetDataErrorMessage(error: unknown): string {
+    const code = typeof error === 'object' && error && 'code' in error
+      ? String((error as { code: unknown }).code)
+      : '';
+
+    if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      return 'Password is incorrect. Application data was not reset.';
+    }
+
+    if (code === 'auth/requires-recent-login') {
+      return 'Please sign in again before resetting application data.';
+    }
+
+    return 'Application data could not be reset. Please try again.';
+  }
+}

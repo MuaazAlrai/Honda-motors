@@ -22,7 +22,9 @@ export class StockComponent {
   readonly search = signal('');
   readonly filteredStock = computed(() => {
     const term = this.search().trim().toLowerCase();
-    return this.stockService.stock().filter((item) => `${item.bikeName} ${item.modelYear} ${item.engineCc} ${item.color}`.toLowerCase().includes(term));
+    return this.stockService.stock().filter((item) =>
+      `${item.bikeName} ${item.modelYear}`.toLowerCase().includes(term)
+    );
   });
 
   constructor(

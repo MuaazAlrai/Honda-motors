@@ -30,7 +30,9 @@ export const routes: Routes = [
       { path: 'dashboard', title: 'Dashboard | Mari Honda Motors', loadComponent: () => import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent) },
       { path: 'products', title: 'Bike Inventory | Mari Honda Motors', loadComponent: () => import('./features/product/product.component').then((m) => m.ProductComponent) },
       { path: 'stock', title: 'Bike Stock | Mari Honda Motors', loadComponent: () => import('./features/stock/stock.component').then((m) => m.StockComponent) },
-      { path: 'purchases', title: 'Bike Purchases | Mari Honda Motors', loadComponent: () => import('./features/purchase/purchase.component').then((m) => m.PurchaseComponent) },
+      // Bike Purchases screen is temporarily disabled.
+      // Uncomment when purchase-entry UI is needed again.
+      // { path: 'purchases', title: 'Bike Purchases | Mari Honda Motors', loadComponent: () => import('./features/purchase/purchase.component').then((m) => m.PurchaseComponent) },
       { path: 'sales', title: 'Bike Sales | Mari Honda Motors', loadComponent: () => import('./features/sales/sales.component').then((m) => m.SalesComponent) },
       { path: 'expenses', title: 'Expenses | Mari Honda Motors', loadComponent: () => import('./features/expense/expense.component').then((m) => m.ExpenseComponent) },
       { path: 'profit', title: 'Profit | Mari Honda Motors', loadComponent: () => import('./features/profit/profit.component').then((m) => m.ProfitComponent) },

@@ -64,7 +64,8 @@ export class SidebarComponent {
     { label: 'Dashboard', route: '/dashboard', icon: 'space_dashboard' },
     { label: 'Bike Inventory', route: '/products', icon: 'two_wheeler' },
     { label: 'Bike Stock', route: '/stock', icon: 'inventory_2' },
-    { label: 'Bike Purchases', route: '/purchases', icon: 'two_wheeler' },
+    // Bike Purchases menu is temporarily disabled.
+    // { label: 'Bike Purchases', route: '/purchases', icon: 'two_wheeler' },
     { label: 'Bike Sales', route: '/sales', icon: 'point_of_sale' },
     { label: 'Expenses', route: '/expenses', icon: 'receipt_long' },
     { label: 'Profit', route: '/profit', icon: 'account_balance_wallet' }

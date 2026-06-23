@@ -22,7 +22,7 @@ import { EXPENSE_CATEGORIES, Expense, ExpenseInput } from '../../core/models';
         <mat-form-field appearance="outline" floatLabel="always"><mat-label>Date</mat-label><input matInput type="date" formControlName="date" /></mat-form-field>
         <mat-form-field appearance="outline" floatLabel="always" class="full-span"><mat-label>Notes</mat-label><textarea matInput formControlName="notes"></textarea></mat-form-field>
       </mat-dialog-content>
-      <mat-dialog-actions align="end"><button mat-button type="button" mat-dialog-close>Cancel</button><button mat-flat-button color="primary">Save expense</button></mat-dialog-actions>
+      <mat-dialog-actions align="end"><button mat-button type="button" mat-dialog-close>Cancel</button><button mat-flat-button color="warn">Save expense</button></mat-dialog-actions>
     </form>
   `
 })

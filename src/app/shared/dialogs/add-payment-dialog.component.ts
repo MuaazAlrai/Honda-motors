@@ -5,7 +5,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { Sale } from '../../features/sales/sales.model';
 
 export interface AddPaymentResult {
@@ -18,7 +17,7 @@ export interface AddPaymentResult {
 @Component({
   selector: 'app-add-payment-dialog',
   standalone: true,
-  imports: [CurrencyPipe, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [CurrencyPipe, ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule],
   template: `
     <h2 mat-dialog-title>Add Customer Payment</h2>
     <form [formGroup]="form" (ngSubmit)="submit()">
@@ -28,9 +27,6 @@ export interface AddPaymentResult {
           <strong>{{ remainingAmount | currency:'PKR ':'symbol':'1.0-0' }} remaining</strong>
         </div>
         <mat-form-field appearance="outline"><mat-label>Payment Amount</mat-label><input matInput type="number" formControlName="amount" /></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Payment Method</mat-label><mat-select formControlName="paymentMethod">
-          @for (method of methods; track method) { <mat-option [value]="method">{{ method }}</mat-option> }
-        </mat-select></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Payment Date</mat-label><input matInput type="date" formControlName="paymentDate" /></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Notes</mat-label><textarea matInput formControlName="notes"></textarea></mat-form-field>
       </mat-dialog-content>
@@ -45,7 +41,6 @@ export interface AddPaymentResult {
   `]
 })
 export class AddPaymentDialogComponent {
-  readonly methods = ['Cash', 'Bank Transfer', 'Card', 'Other'];
   readonly remainingAmount: number;
   readonly form;
 

@@ -19,6 +19,7 @@
 html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 body { background: var(--canvas); color: var(--ink); font-family: 'Manrope', sans-serif; font-size: 18px; line-height: 1.5; }
 button, input, textarea { font: inherit; }
+img, svg, video { max-width: 100%; }
 
 .app-layout {
   --sidebar-current-width: var(--sidebar-expanded-width);
@@ -170,7 +171,7 @@ button, input, textarea { font: inherit; }
 .summary-strip strong { font-size: 22px; }
 .table-toolbar { min-height: 74px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; }
 .table-toolbar mat-form-field { width: min(340px, 100%); }
-.table-wrap { overflow-x: auto; }
+.table-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table.mat-mdc-table { width: 100%; background: transparent; }
 .mat-mdc-header-cell { height: 54px; color: #C0C0C0; font-size: 14px; text-transform: uppercase; letter-spacing: .6px; font-weight: 800; white-space: nowrap; }
 .mat-mdc-cell { height: 64px; font-size: 15px; color: #E0E0E0; white-space: nowrap; }
@@ -268,6 +269,13 @@ table.mat-mdc-table { width: 100%; background: transparent; }
   .summary-strip > div { min-width: 155px; }
   .dialog-grid { grid-template-columns: 1fr; }
   .dialog-grid .full-span { grid-column: auto; }
+  .feature-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .feature-heading h1,
+  .page-header h1,
+  .content-area h1 { font-size: clamp(26px, 8vw, 32px) !important; }
+  .content-area p { font-size: 14px !important; }
+  .content-card mat-card-header { padding: 18px 16px 8px; }
+  .metric-card mat-card-content { padding: 16px !important; }
 }
 
 /* Mari Honda Motors automotive surface overrides */
@@ -343,6 +351,11 @@ table.mat-mdc-table { background: transparent !important; }
 @media (max-width: 480px) {
   .header-logo { width: 76px; }
   .navbar-title strong { font-size: 15px; }
+  .content-inner { padding: 18px 10px 28px; }
+  .navbar { padding: 0 8px !important; }
+  .header-toggle { margin-right: 4px; }
+  .mat-mdc-button, .mat-mdc-raised-button, .mat-mdc-unelevated-button { width: 100%; }
+  .mat-mdc-dialog-container .mat-mdc-dialog-surface { max-width: calc(100vw - 20px) !important; }
 }
 
 /* High-contrast red application theme */
@@ -692,3 +705,84 @@ input:-webkit-autofill:focus {
 .form-step{display:flex;align-items:center;gap:12px;margin:15px 0 10px;padding:12px 14px;border-radius:13px;background:rgba(229,57,53,.08)}.form-step>span{width:32px;height:32px;display:grid;place-items:center;flex:0 0 auto;color:#fff;border-radius:50%;background:#e53935;font-weight:800}.form-step strong,.form-step small{display:block}.form-step strong{color:#f5f5f5;font-size:15px}.form-step small{margin-top:3px;color:#afafaf;font-size:11px}.final-step{margin-top:8px}.color-choice{display:grid;gap:5px;padding:4px 0 16px}.color-choice small{color:#afafaf;font-size:10px;line-height:1.45}.add-item-button{min-height:42px}.remove-item-button{margin-top:5px;color:#e46868}.item-subtotal{grid-column:2/-1;display:flex;justify-content:flex-end;gap:12px;margin-top:-10px;padding:0 48px 2px 0}.item-subtotal span{color:#afafaf;font-size:10px}.item-subtotal strong{color:#e53935;font-size:13px}.save-help{display:flex;justify-content:center;align-items:center;gap:6px;margin:2px 0 0;color:#afafaf;font-size:10px;text-align:center}.save-help mat-icon{width:15px;height:15px;font-size:15px}@media(max-width:720px){.items-heading{align-items:flex-start;flex-direction:column}.add-item-button{width:100%}.item-subtotal{grid-column:2/-1;padding-right:0}}
 .payment-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}.payment-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}.payment-summary div{padding:13px 15px;border-radius:12px;background:rgba(255,255,255,.05)}.payment-summary span,.payment-summary strong{display:block}.payment-summary span{color:#afafaf;font-size:9px;text-transform:uppercase}.payment-summary strong{margin-top:4px;color:#f5f5f5;font-size:14px}.payment-summary .remaining strong{color:#ef5350}.history-payment{display:grid;gap:3px;font-size:11px}.history-payment span{color:#afafaf}.history-payment strong{color:#8ccf94}.history-payment strong.has-balance{color:#ef5350}.payment-status{display:inline-block;padding:5px 8px;border-radius:10px;color:#8ccf94;background:rgba(83,170,109,.14);font-size:9px;font-weight:800}.payment-status.partial{color:#ffb45f;background:rgba(255,180,95,.12)}.payment-status.credit{color:#ff7772;background:rgba(229,57,53,.12)}.payment-button{color:#57b96b}@media(max-width:720px){.payment-fields,.payment-summary{grid-template-columns:1fr}}
 .history-notes{display:block;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#afafaf}
+
+@media (max-width: 640px) {
+  .table-wrap {
+    overflow-x: visible;
+  }
+
+  .mobile-card-table,
+  .mobile-card-table .mat-mdc-header-row,
+  .mobile-card-table .mat-mdc-row,
+  .mobile-card-table .mat-mdc-cell,
+  .mobile-card-table .mat-mdc-header-cell {
+    display: block;
+  }
+
+  .mobile-card-table {
+    min-width: 0 !important;
+    width: 100%;
+    padding: 0 12px 14px;
+  }
+
+  .mobile-card-table .mat-mdc-header-row {
+    display: none;
+  }
+
+  .mobile-card-table .mat-mdc-row {
+    height: auto;
+    margin: 0 0 12px;
+    padding: 14px;
+    border: 1px solid rgba(255, 107, 104, .24);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, .045);
+  }
+
+  .mobile-card-table .mat-mdc-cell {
+    min-height: 0;
+    height: auto;
+    padding: 9px 0 !important;
+    border: 0;
+    white-space: normal;
+    text-align: right;
+  }
+
+  .mobile-card-table .mat-mdc-cell + .mat-mdc-cell {
+    border-top: 1px solid rgba(255, 107, 104, .12);
+  }
+
+  .mobile-card-table .mat-mdc-cell::before {
+    content: attr(data-label);
+    float: left;
+    max-width: 48%;
+    padding-right: 12px;
+    color: #ffaaa7;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .mobile-card-table .mat-mdc-cell:empty {
+    display: none;
+  }
+
+  .mobile-card-table .mat-mdc-cell strong,
+  .mobile-card-table .mat-mdc-cell small {
+    white-space: normal;
+  }
+
+  .section-heading,
+  .section-title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px 16px 12px;
+  }
+
+  .history-total {
+    width: 100%;
+    text-align: left;
+  }
+}

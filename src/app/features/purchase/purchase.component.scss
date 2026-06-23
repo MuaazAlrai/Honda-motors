@@ -61,9 +61,16 @@ mat-form-field { width: 100%; }
   .purchase-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
-  .purchase-heading { align-items: flex-start; }
+  .purchase-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
   .stock-badge { display: none; }
   .purchase-form { padding: 22px 18px; }
   .input-row { grid-template-columns: 1fr; }
+  .purchase-card { grid-template-columns: 40px 1fr; }
+  .purchase-card b { grid-column: 2; }
+  .today-total strong, .total-row strong { font-size: 20px; }
 }
-
+@media (max-width: 420px) {
+  .purchase-form { padding: 18px 14px; }
+  .card-heading { align-items: flex-start; }
+  .total-row { align-items: flex-start; flex-direction: column; gap: 6px; }
+}

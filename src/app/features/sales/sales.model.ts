@@ -11,8 +11,6 @@ export interface SaleItem {
   id: string;
   bikeId: string;
   bikeName: string;
-  color?: string;
-  specificColor: boolean;
   quantity: number;
   salePricePerBike: number;
   totalRevenue: number;
@@ -56,9 +54,22 @@ export interface SaleView extends Sale {
   itemsSummary: string;
 }
 
+export interface CustomerSalesView {
+  customerKey: string;
+  customerName: string;
+  customerContact: string;
+  sales: SaleView[];
+  totalInvoices: number;
+  totalBikes: number;
+  totalAmount: number;
+  totalPaid: number;
+  totalRemaining: number;
+  paymentStatus: PaymentStatus;
+  lastSaleDate: string;
+}
+
 export interface NewSaleItemRequest {
   bikeId: string;
-  specificColor: boolean;
   quantity: number;
   salePricePerBike: number;
 }

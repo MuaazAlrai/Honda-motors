@@ -22,6 +22,17 @@ import { FirebaseService } from '../../services/firebase.service';
         </button> -->
       </div>
     </section>
+    @if (service.selectedMonth(); as selected) {
+      <div class="firebase-message filter-applied" role="status">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <mat-icon style="color: #ef5350;">filter_alt</mat-icon>
+          <span>Showing report for <strong>{{ selected.label }} {{ selected.year }}</strong></span>
+        </div>
+        <button mat-flat-button (click)="clearFilter()">
+          Clear Filter
+        </button>
+      </div>
+    }
     @if (firebaseMessage) {
       <div class="firebase-message" [class.error]="firebaseError" role="status">
         <mat-icon>{{ firebaseError ? 'error' : 'cloud_done' }}</mat-icon>
@@ -38,7 +49,13 @@ import { FirebaseService } from '../../services/firebase.service';
         <mat-card-header><mat-card-title>Monthly bike sales</mat-card-title><mat-card-subtitle>Revenue for the last six months</mat-card-subtitle></mat-card-header>
         <mat-card-content class="sales-chart">
           @for (month of service.monthlySales(); track month.label) {
-            <div class="chart-column"><strong>{{ month.revenue | currency:'PKR ':'symbol':'1.0-0' }}</strong><div class="chart-track"><span [style.height.%]="month.revenue / service.maxMonthlyRevenue() * 100"></span></div><small>{{ month.label }}</small></div>
+            <div class="chart-column clickable" [class.active]="service.selectedMonth()?.label === month.label && service.selectedMonth()?.year === month.year" (click)="toggleMonth(month)">
+              <strong>{{ month.revenue | currency:'PKR ':'symbol':'1.0-0' }}</strong>
+              <div class="chart-track">
+                <span [style.height.%]="month.revenue / service.maxMonthlyRevenue() * 100"></span>
+              </div>
+              <small>{{ month.label }}</small>
+            </div>
           }
         </mat-card-content>
       </mat-card>
@@ -72,6 +89,13 @@ import { FirebaseService } from '../../services/firebase.service';
   `,
   styles: [`
     .dashboard-actions{display:flex;align-items:center;gap:12px}.dashboard-actions button{min-width:148px}.button-spinner{width:18px;height:18px;display:inline-block;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}.loading-hidden{display:none!important}@keyframes spin{to{transform:rotate(360deg)}}.firebase-message{display:flex;align-items:center;gap:10px;margin:-10px 0 22px;padding:12px 16px;color:#b7e1c4;border:1px solid rgba(83,170,109,.4);border-radius:6px;background:rgba(83,170,109,.12)}.firebase-message.error{color:#ffaaa7;border-color:rgba(229,57,53,.38);background:rgba(229,57,53,.1)}.lower-grid{margin-top:24px}.sales-chart{height:250px;display:flex;align-items:flex-end;gap:16px;padding:24px!important}.chart-column{height:100%;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px}.chart-column>strong{font-size:10px;color:var(--muted)}.chart-track{height:170px;width:100%;max-width:54px;display:flex;align-items:flex-end;border-radius:10px;background:#242424;overflow:hidden}.chart-track span{width:100%;min-height:4px;background:linear-gradient(180deg,#ef5350,#b71c1c);border-radius:10px 10px 0 0}.chart-column small{color:var(--muted)}.alert-list{padding:12px 22px 22px!important}.alert-list>div:not(.empty-state){display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.alert-list mat-icon{color:#ef5350}.alert-list span{flex:1}.alert-list strong,.alert-list small{display:block}.alert-list small{color:var(--muted)}.alert-list b{color:#ef5350}.compact{padding:28px 10px}@media(max-width:700px){.dashboard-actions{width:100%}.dashboard-actions button{width:100%}.sales-chart{gap:6px;padding:18px 10px!important}.chart-column>strong{display:none}}
+    .firebase-message.filter-applied{color:#ffcdd2;border-color:rgba(229,57,53,.38);background:rgba(229,57,53,.15);justify-content:space-between}
+    .firebase-message.filter-applied button{height:32px;min-height:32px;min-width:auto;padding:0 12px;border-radius:8px;font-size:12px!important;margin:0;line-height:32px;background:#e53935!important;color:white!important}
+    .chart-column.clickable{cursor:pointer;transition:transform .2s ease,opacity .2s ease;border-radius:8px;padding:4px}
+    .chart-column.clickable:hover{transform:scale(1.04)}
+    .chart-column.clickable.active{transform:scale(1.04)}
+    .chart-column.clickable.active .chart-track span{background:linear-gradient(180deg,#ff8a80,#ff1744);box-shadow:0 0 14px rgba(255,23,68,.7)}
+    .sales-chart:has(.chart-column.active) .chart-column:not(.active){opacity:.4}
   `]
 })
 export class DashboardComponent {
@@ -82,7 +106,6 @@ export class DashboardComponent {
   readonly cards = computed(() => {
     const metrics = this.service.metrics();
     return [
-      { label: 'Bikes Purchased', value: metrics.totalBikesPurchased, icon: 'local_shipping', accent: 'silver', currency: false },
       { label: 'Bikes Sold', value: metrics.totalBikesSold, icon: 'two_wheeler', accent: 'red', currency: false },
       { label: 'Cash in Hand', value: metrics.cashInHand, icon: 'payments', accent: 'silver', currency: true },
       { label: 'Outstanding Credit', value: metrics.outstandingCredit, icon: 'credit_score', accent: 'red', currency: true },
@@ -95,6 +118,19 @@ export class DashboardComponent {
     readonly service: DashboardService,
     private readonly firebaseService: FirebaseService
   ) {}
+
+  toggleMonth(month: any): void {
+    const current = this.service.selectedMonth();
+    if (current?.label === month.label && current?.year === month.year) {
+      this.service.selectedMonth.set(null);
+    } else {
+      this.service.selectedMonth.set(month);
+    }
+  }
+
+  clearFilter(): void {
+    this.service.selectedMonth.set(null);
+  }
 
   async saveData(): Promise<void> {
     this.isSaving = true;

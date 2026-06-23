@@ -6,7 +6,7 @@ export const EXPENSE_CATEGORIES = [
   'Other'
 ] as const;
 
-export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
 
 export interface Expense {
   id: string;
@@ -15,14 +15,21 @@ export interface Expense {
   amount: number;
   date: string;
   notes: string;
+
   createdAt: string;
   updatedAt: string;
 }
 
-export type ExpenseInput = Omit<Expense, 'id' | 'createdAt' | 'updatedAt'>;
+export type ExpenseInput = {
+  title: string;
+  category?: ExpenseCategory;
+  amount: number;
+  date?: string;
+  notes?: string;
+};
 
-export interface NewExpenseRequest {
+export type NewExpenseRequest = {
   title: string;
   amount: number;
-  category: ExpenseCategory;
-}
+  category?: ExpenseCategory;
+};

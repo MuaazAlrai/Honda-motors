@@ -1,9 +1,7 @@
 import { computed, inject, Injectable } from '@angular/core';
 import { InventoryService } from '../../core/services/inventory.service';
 import { SaleService as LocalSaleService } from '../../core/services/sale.service';
-import { NewSaleRequest, Sale, SaleUpdate } from './sales.model';
-import { StockItem } from '../stock/stock.model';
-import { bikeNameKey } from '../../core/models';
+import { CustomerSalesView, NewSaleRequest, Sale, SaleUpdate } from './sales.model';
 import { PaymentService } from '../../core/services/payment.service';
 import { AddPaymentResult } from '../../shared/dialogs/add-payment-dialog.component';
 
@@ -15,30 +13,59 @@ export class SalesService {
 
   readonly sales = this.localSales.sales;
   readonly saleViews = this.localSales.saleViews;
-  readonly colorStock = computed(() =>
-    this.inventory.stock().filter((bike) => bike.availableStock > 0)
-  );
-  readonly stock = computed(() => {
-    const models = new Map<string, StockItem>();
-    for (const stock of this.colorStock()) {
-      const key = bikeNameKey(stock.bikeName);
-      const existing = models.get(key);
+  readonly payments = this.paymentService.payments;
+  readonly customerSales = computed<CustomerSalesView[]>(() => {
+    const customers = new Map<string, CustomerSalesView>();
+
+    for (const sale of this.saleViews()) {
+      const key = this.customerKey(sale.customerName, sale.customerContact);
+      const existing = customers.get(key);
+      const paid = sale.paidAmount ?? sale.totalRevenue;
+      const remaining = sale.remainingAmount ?? 0;
+
       if (!existing) {
-        models.set(key, { ...stock, sourceBikeIds: [...stock.sourceBikeIds], color: 'All colors' });
+        customers.set(key, {
+          customerKey: key,
+          customerName: sale.customerName,
+          customerContact: sale.customerContact,
+          sales: [sale],
+          totalInvoices: 1,
+          totalBikes: sale.quantity,
+          totalAmount: sale.totalRevenue,
+          totalPaid: paid,
+          totalRemaining: remaining,
+          paymentStatus: remaining === 0 ? 'PAID' : paid > 0 ? 'PARTIAL' : 'CREDIT',
+          lastSaleDate: sale.saleDate
+        });
         continue;
       }
-      existing.sourceBikeIds.push(...stock.sourceBikeIds);
-      existing.openingQuantity += stock.openingQuantity;
-      existing.purchasedQuantity += stock.purchasedQuantity;
-      existing.soldQuantity += stock.soldQuantity;
-      existing.availableStock += stock.availableStock;
-      existing.inventoryValue += stock.inventoryValue;
-      existing.averagePurchasePrice = existing.availableStock > 0
-        ? existing.inventoryValue / existing.availableStock
-        : existing.purchasePrice;
+
+      existing.sales.push(sale);
+      existing.totalInvoices += 1;
+      existing.totalBikes += sale.quantity;
+      existing.totalAmount += sale.totalRevenue;
+      existing.totalPaid += paid;
+      existing.totalRemaining += remaining;
+      existing.lastSaleDate = sale.saleDate > existing.lastSaleDate
+        ? sale.saleDate
+        : existing.lastSaleDate;
+      existing.paymentStatus = existing.totalRemaining === 0
+        ? 'PAID'
+        : existing.totalPaid > 0 ? 'PARTIAL' : 'CREDIT';
     }
-    return [...models.values()];
+
+    return [...customers.values()]
+      .map((customer) => ({
+        ...customer,
+        sales: [...customer.sales].sort((a, b) =>
+          b.saleDate.localeCompare(a.saleDate) || b.createdAt.localeCompare(a.createdAt)
+        )
+      }))
+      .sort((a, b) => b.lastSaleDate.localeCompare(a.lastSaleDate));
   });
+  readonly stock = computed(() =>
+    this.inventory.stock().filter((bike) => bike.availableStock > 0)
+  );
   readonly availableModels = this.stock;
 
   readonly todaySales = computed(() => {
@@ -93,5 +120,10 @@ export class SalesService {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private customerKey(name: string, contact: string): string {
+    const normalize = (value: string) => value.trim().replace(/\s+/g, ' ').toLowerCase();
+    return `${normalize(name)}|${normalize(contact)}`;
   }
 }

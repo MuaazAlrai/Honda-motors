@@ -1,4 +1,4 @@
-import { computed, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { ActivityItem, DashboardMetrics, Sale } from '../models';
 import { LOW_STOCK_LIMIT } from '../config/inventory.constants';
 import { BikeService } from './bike.service';
@@ -10,10 +10,36 @@ import { bikeNameKey } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
+  readonly selectedMonth = signal<{ month: number; year: number; label: string } | null>(null);
+
   readonly metrics = computed<DashboardMetrics>(() => {
-    const sales = this.sales.sales();
-    const expenses = this.expenses.expenses();
+    const allSales = this.sales.sales();
+    const allExpenses = this.expenses.expenses();
+    const allPurchases = this.purchases.purchases();
     const stock = this.inventory.stock();
+
+    const filter = this.selectedMonth();
+    const sales = filter
+      ? allSales.filter((sale) => {
+          const d = new Date(`${sale.saleDate}T00:00:00`);
+          return d.getMonth() === filter.month && d.getFullYear() === filter.year;
+        })
+      : allSales;
+
+    const expenses = filter
+      ? allExpenses.filter((exp) => {
+          const d = new Date(`${exp.date}T00:00:00`);
+          return d.getMonth() === filter.month && d.getFullYear() === filter.year;
+        })
+      : allExpenses;
+
+    const purchases = filter
+      ? allPurchases.filter((p) => {
+          const d = new Date(`${p.purchaseDate}T00:00:00`);
+          return d.getMonth() === filter.month && d.getFullYear() === filter.year;
+        })
+      : allPurchases;
+
     const totalProfit = sales.reduce((sum, item) => sum + item.profit, 0);
     const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
     const cashInHand = sales.reduce(
@@ -25,7 +51,7 @@ export class DashboardService {
       0
     );
     return {
-      totalBikesPurchased: this.purchases.purchases().reduce((sum, item) => sum + item.quantity, 0),
+      totalBikesPurchased: purchases.reduce((sum, item) => sum + item.quantity, 0),
       totalBikesSold: sales.reduce((sum, item) => sum + item.quantity, 0),
       totalProfit,
       totalExpenses,
@@ -39,13 +65,42 @@ export class DashboardService {
     };
   });
 
-  readonly recentActivity = computed<ActivityItem[]>(() =>
-    [
-      ...this.purchases.purchaseViews().map((item) => ({ type: 'Purchase' as const, description: `${item.bikeName} · ${item.supplierName}`, amount: item.totalCost, date: item.purchaseDate })),
-      ...this.sales.saleViews().map((item) => ({ type: 'Sale' as const, description: `${item.itemsSummary} · ${item.customerName}`, amount: item.totalRevenue, date: item.saleDate })),
-      ...this.expenses.expenses().map((item) => ({ type: 'Expense' as const, description: `${item.title} · ${item.category}`, amount: item.amount, date: item.date }))
-    ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8)
-  );
+  readonly recentActivity = computed<ActivityItem[]>(() => {
+    const filter = this.selectedMonth();
+    const purchasesList = this.purchases.purchaseViews();
+    const salesList = this.sales.saleViews();
+    const expensesList = this.expenses.expenses();
+
+    const filteredPurchases = filter
+      ? purchasesList.filter((item) => {
+          const d = new Date(`${item.purchaseDate}T00:00:00`);
+          return d.getMonth() === filter.month && d.getFullYear() === filter.year;
+        })
+      : purchasesList;
+
+    const filteredSales = filter
+      ? salesList.filter((item) => {
+          const d = new Date(`${item.saleDate}T00:00:00`);
+          return d.getMonth() === filter.month && d.getFullYear() === filter.year;
+        })
+      : salesList;
+
+    const filteredExpenses = filter
+      ? expensesList.filter((item) => {
+          const d = new Date(`${item.date}T00:00:00`);
+          return d.getMonth() === filter.month && d.getFullYear() === filter.year;
+        })
+      : expensesList;
+
+    return [
+      ...filteredPurchases.map((item) => ({ type: 'Purchase' as const, description: `${item.bikeName} · ${item.supplierName}`, amount: item.totalCost, date: item.purchaseDate })),
+      ...filteredSales.map((item) => ({ type: 'Sale' as const, description: `${item.itemsSummary} · ${item.customerName}`, amount: item.totalRevenue, date: item.saleDate })),
+      ...filteredExpenses.map((item) => ({ type: 'Expense' as const, description: `${item.title} · ${item.category}`, amount: item.amount, date: item.date }))
+    ]
+      .filter((item) => item.type !== 'Purchase')
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 8);
+  });
 
   readonly monthlySales = computed(() => {
     const formatter = new Intl.DateTimeFormat('en', { month: 'short' });
@@ -58,7 +113,12 @@ export class DashboardService {
           return sold.getMonth() === date.getMonth() && sold.getFullYear() === date.getFullYear();
         })
         .reduce((sum, sale) => sum + sale.totalRevenue, 0);
-      return { label: formatter.format(date), revenue };
+      return {
+        label: formatter.format(date),
+        revenue,
+        month: date.getMonth(),
+        year: date.getFullYear()
+      };
     });
   });
 

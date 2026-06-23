@@ -1,4 +1,4 @@
-﻿:host { display: block; }
+:host { display: block; }
 
 .stock-heading {
   display: flex;
@@ -44,12 +44,11 @@
 .low-stock-badge { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; gap: 5px; padding: 7px 10px; color: white; border-radius: 20px; background: #df414b; box-shadow: 0 7px 16px rgba(190,43,52,.25); font-size: 12px; font-weight: 800; }
 .low-stock-badge mat-icon { width: 16px; height: 16px; font-size: 16px; }
 .low-stock-card .stock-number { margin-top: 32px; }
-.stock-flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: center; margin: 20px 0 14px; padding: 13px 14px; border-radius: 13px; background: rgba(236,248,237,.78); }
+.stock-flow { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; margin: 20px 0 14px; padding: 13px 14px; border-radius: 13px; background: rgba(236,248,237,.78); }
 .stock-flow div { text-align: center; }
 .stock-flow span, .stock-flow strong { display: block; }
 .stock-flow span { color: #AFAFAF; font-size: 8px; text-transform: uppercase; }
 .stock-flow strong { margin-top: 3px; color: #E0E0E0; font-size: 13px; }
-.stock-flow .purchased strong { color: #E53935; }
 .stock-flow .sold strong { color: #c45355; }
 .stock-flow mat-icon { width: 15px; height: 15px; font-size: 15px; color: #AFAFAF; }
 mat-progress-bar { --mdc-linear-progress-active-indicator-color: #B71C1C; --mdc-linear-progress-track-color: #333333; border-radius: 10px; overflow: hidden; }
@@ -74,7 +73,7 @@ mat-progress-bar.low-progress { --mdc-linear-progress-active-indicator-color: #e
   .stock-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
-  .stock-heading { align-items: flex-start; }
+  .stock-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
   .live-badge { display: none; }
   .stock-summary { grid-template-columns: 1fr; gap: 10px; }
   .panel-toolbar { align-items: flex-start; flex-direction: column; }
@@ -86,8 +85,12 @@ mat-progress-bar.low-progress { --mdc-linear-progress-active-indicator-color: #e
 }
 @media (max-width: 440px) {
   .stock-card { padding: 17px; }
-  .card-top { grid-template-columns: 40px 1fr auto; }
+  .card-top { grid-template-columns: 40px 1fr; }
   .product-icon { width: 40px; height: 40px; }
-  .stock-flow { gap: 4px; padding-inline: 8px; }
+  .stock-number { grid-column: 1 / -1; text-align: left; }
+  .low-stock-card .stock-number { margin-top: 0; }
+  .low-stock-badge { position: static; grid-column: 1 / -1; width: fit-content; }
+  .stock-flow { grid-template-columns: 1fr; gap: 8px; padding-inline: 12px; }
+  .stock-flow mat-icon { margin: 0 auto; transform: rotate(90deg); }
+  .card-footer { grid-template-columns: 1fr; }
 }
-
