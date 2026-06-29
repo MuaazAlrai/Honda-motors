@@ -13,6 +13,7 @@ import { SaleEditDialogComponent } from '../../shared/dialogs/sale-edit-dialog.c
 import { AddPaymentDialogComponent } from '../../shared/dialogs/add-payment-dialog.component';
 import { PasswordConfirmDialogComponent } from '../../shared/dialogs/password-confirm-dialog.component';
 import { UiService } from '../../shared/services/ui.service';
+import { WhatsAppService } from '../../shared/services/whatsapp.service';
 import { CustomerSalesView, PaymentType, Sale, SalePayment } from './sales.model';
 import { SalesService } from './sales.service';
 
@@ -94,7 +95,8 @@ export class SalesComponent {
     private readonly formBuilder: FormBuilder,
     readonly salesService: SalesService,
     private readonly ui: UiService,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private readonly whatsapp: WhatsAppService
   ) {
     this.form = formBuilder.nonNullable.group({
       customerName: ['', Validators.required],
@@ -213,6 +215,24 @@ export class SalesComponent {
         this.ui.error((error as Error).message);
       }
     });
+  }
+
+  sendWhatsAppLedger(row: CustomerSalesView): void {
+    try {
+      this.whatsapp.openCustomerLedger(row.customerContact, {
+        customerName: row.customerName,
+        totalAmount: row.totalAmount,
+        paidAmount: row.totalPaid,
+        remainingAmount: row.totalRemaining,
+        totalInvoices: row.totalInvoices
+      });
+    } catch (error) {
+      this.ui.error((error as Error).message);
+    }
+  }
+
+  canSendWhatsApp(row: CustomerSalesView): boolean {
+    return this.whatsapp.canOpen(row.customerContact);
   }
 
   editSale(sale: Sale): void {

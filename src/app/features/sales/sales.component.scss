@@ -63,6 +63,18 @@ mat-form-field { width: 100%; }
 .history-items span,.history-items b,.history-items small { display:block; }
 .history-items b { color:#F5F5F5; font-size:12px; }
 .history-items small { margin-top:2px; color:#AFAFAF; font-size:10px; }
+.contact-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 150px;
+}
+.whatsapp-button {
+  color: #25d366;
+}
+.whatsapp-button:disabled {
+  color: rgba(255, 255, 255, .24);
+}
 /* ── Paid / Remaining headers ── */
 .header-paid    { color: #00e676 !important; font-weight: 800 !important; }
 .header-remaining { color: #ff9100 !important; font-weight: 800 !important; }

@@ -10,5 +10,9 @@ export const environment = {
   messagingSenderId: "535643698494",
   appId: "1:535643698494:web:8544eae25d7c49502a686f",
   measurementId: "G-RHY12FZWJ2"
+  },
+  whatsapp: {
+    defaultCountryCode: '92',
+    businessName: 'Mari Motors'
   }
 };

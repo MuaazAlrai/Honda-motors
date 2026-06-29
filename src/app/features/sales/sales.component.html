@@ -209,7 +209,19 @@
 
       <ng-container matColumnDef="contact">
         <th mat-header-cell *matHeaderCellDef>Contact</th>
-        <td mat-cell *matCellDef="let row" data-label="Contact">{{ row.customerContact }}</td>
+        <td mat-cell *matCellDef="let row" data-label="Contact">
+          <div class="contact-cell">
+            <span>{{ row.customerContact }}</span>
+            <button
+              mat-icon-button
+              class="whatsapp-button"
+              title="Send WhatsApp Message"
+              [disabled]="!canSendWhatsApp(row)"
+              (click)="sendWhatsAppLedger(row)">
+              <mat-icon>chat</mat-icon>
+            </button>
+          </div>
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="purchases">
@@ -259,6 +271,14 @@
                   <mat-icon>add_card</mat-icon>
                 </button>
               }
+              <button
+                mat-icon-button
+                class="whatsapp-button"
+                title="Send WhatsApp Ledger"
+                [disabled]="!canSendWhatsApp(row)"
+                (click)="sendWhatsAppLedger(row)">
+                <mat-icon>chat</mat-icon>
+              </button>
             </div>
           </div>
         </td>
