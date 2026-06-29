@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { Auth } from '@angular/fire/auth';
 import {
   Firestore,
@@ -22,6 +22,14 @@ export class PaymentService {
   private readonly ledgerState = signal<CustomerLedgerEntry[]>([]);
   readonly payments = this.paymentState.asReadonly();
   readonly ledgerEntries = this.ledgerState.asReadonly();
+  readonly initialPaymentMethods = computed(() => {
+    const methods = new Map<string, string>();
+    for (const payment of this.paymentState()) {
+      if (payment.notes !== 'Initial payment' || methods.has(payment.saleId)) continue;
+      methods.set(payment.saleId, payment.paymentMethod);
+    }
+    return methods;
+  });
 
   constructor(
     repositoryFactory: LocalStorageRepository,

@@ -250,7 +250,18 @@
 
       <ng-container matColumnDef="remaining">
         <th mat-header-cell *matHeaderCellDef class="header-remaining">⚠ Remaining</th>
-        <td mat-cell *matCellDef="let row" class="remaining-value" [class.cleared]="row.totalRemaining === 0" data-label="⚠ Remaining">{{ row.totalRemaining | currency:'PKR ':'symbol':'1.0-0' }}</td>
+        <td mat-cell *matCellDef="let row" class="remaining-value" [class.cleared]="row.totalRemaining === 0" data-label="⚠ Remaining">
+          <div class="remaining-cell-content">
+            <span>{{ row.totalRemaining | currency:'PKR ':'symbol':'1.0-0' }}</span>
+            <div class="remaining-payment-actions">
+              @if (row.totalRemaining > 0) {
+                <button mat-icon-button class="payment-button" title="Add Payment" (click)="addCustomerPayment(row)">
+                  <mat-icon>add_card</mat-icon>
+                </button>
+              }
+            </div>
+          </div>
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="status">
@@ -280,9 +291,6 @@
                   <button mat-icon-button class="history-btn" [class.active]="isInvoiceExpanded(sale.id)" title="Payment History" (click)="toggleInvoice(sale.id)">
                     <mat-icon>history</mat-icon>
                   </button>
-                  @if ((sale.remainingAmount ?? 0) > 0) {
-                    <button mat-icon-button class="payment-button" title="Add Payment" (click)="addPayment(sale)"><mat-icon>add_card</mat-icon></button>
-                  }
                   <button mat-icon-button title="Edit Sale" (click)="editSale(sale)"><mat-icon>edit</mat-icon></button>
                   <button mat-icon-button class="delete-button" title="Delete Sale" (click)="deleteSale(sale.id)"><mat-icon>delete_outline</mat-icon></button>
                 </div>

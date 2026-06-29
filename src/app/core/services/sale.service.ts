@@ -70,6 +70,7 @@ export class SaleService {
       profit: totalRevenue - totalCost,
       saleDate: input.saleDate,
       paymentMethod: input.paymentMethod,
+      originalPaymentMethod: input.paymentMethod,
       notes: input.notes,
       allocations: items.flatMap((item) => item.allocations),
       items
@@ -86,6 +87,7 @@ export class SaleService {
         customerName: input.customerName,
         saleDate: input.saleDate,
         paymentMethod: input.paymentMethod,
+        originalPaymentMethod: existing.originalPaymentMethod ?? existing.paymentMethod ?? input.paymentMethod,
         notes: input.notes
       });
       this.refresh();
@@ -105,6 +107,7 @@ export class SaleService {
     }
     const entity = this.repository.update(id, {
       ...input,
+      originalPaymentMethod: existing.originalPaymentMethod ?? existing.paymentMethod ?? input.paymentMethod,
       bikeId: item.bikeId,
       quantity: item.quantity,
       salePricePerBike: item.salePricePerBike,
@@ -123,8 +126,7 @@ export class SaleService {
 
   addPayment(
     id: string,
-    amount: number,
-    paymentMethod: string
+    amount: number
   ): Sale {
     const sale = this.state().find((item) => item.id === id);
     if (!sale) throw new Error('Sale record not found.');
@@ -138,11 +140,25 @@ export class SaleService {
     const entity = this.repository.update(id, {
       paidAmount: newPaidAmount,
       remainingAmount: sale.totalRevenue - newPaidAmount,
-      paymentStatus: this.paymentStatus(sale.totalRevenue, newPaidAmount),
-      paymentMethod
+      paymentStatus: this.paymentStatus(sale.totalRevenue, newPaidAmount)
     });
     this.refresh();
     return entity;
+  }
+
+  restorePaymentMethods(methodsBySaleId: Map<string, string>): void {
+    let changed = false;
+    for (const sale of this.state()) {
+      const originalMethod = methodsBySaleId.get(sale.id);
+      if (!originalMethod) continue;
+      if (sale.paymentMethod === originalMethod && sale.originalPaymentMethod === originalMethod) continue;
+      this.repository.update(sale.id, {
+        paymentMethod: originalMethod,
+        originalPaymentMethod: originalMethod
+      });
+      changed = true;
+    }
+    if (changed) this.refresh();
   }
 
   delete(id: string): void {

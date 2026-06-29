@@ -36,6 +36,7 @@ export interface Sale {
   profit: number;
   saleDate: string;
   paymentMethod?: string;
+  originalPaymentMethod?: string;
   notes: string;
   allocations?: SaleStockAllocation[];
   items?: SaleItem[];

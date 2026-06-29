@@ -1,4 +1,4 @@
-import { computed, inject, Injectable } from '@angular/core';
+import { computed, effect, inject, Injectable } from '@angular/core';
 import { InventoryService } from '../../core/services/inventory.service';
 import { SaleService as LocalSaleService } from '../../core/services/sale.service';
 import { CustomerSalesView, NewSaleRequest, Sale, SaleUpdate } from './sales.model';
@@ -12,8 +12,16 @@ export class SalesService {
   private readonly paymentService = inject(PaymentService);
 
   readonly sales = this.localSales.sales;
-  readonly saleViews = this.localSales.saleViews;
   readonly payments = this.paymentService.payments;
+  readonly saleViews = computed(() => {
+    const initialMethods = this.paymentService.initialPaymentMethods();
+    return this.localSales.saleViews().map((sale) => ({
+      ...sale,
+      paymentMethod: sale.originalPaymentMethod === 'Installment' || initialMethods.get(sale.id) === 'Installment'
+        ? 'Installment'
+        : sale.paymentMethod
+    }));
+  });
   readonly customerSales = computed<CustomerSalesView[]>(() => {
     const customers = new Map<string, CustomerSalesView>();
 
@@ -81,6 +89,16 @@ export class SalesService {
     this.todaySales().reduce((total, sale) => total + sale.profit, 0)
   );
 
+  constructor() {
+    effect(() => {
+      const installmentMethods = new Map<string, string>();
+      for (const [saleId, method] of this.paymentService.initialPaymentMethods()) {
+        if (method === 'Installment') installmentMethods.set(saleId, method);
+      }
+      this.localSales.restorePaymentMethods(installmentMethods);
+    });
+  }
+
   saveSale(request: NewSaleRequest): Sale {
     const sale = this.localSales.createInvoice({
       ...request,
@@ -104,7 +122,7 @@ export class SalesService {
   }
 
   addPayment(id: string, payment: AddPaymentResult): Sale {
-    const sale = this.localSales.addPayment(id, payment.amount, payment.paymentMethod);
+    const sale = this.localSales.addPayment(id, payment.amount);
     this.paymentService.recordPayment(
       sale,
       payment.amount,
@@ -113,6 +131,35 @@ export class SalesService {
       payment.notes
     );
     return sale;
+  }
+
+  addCustomerPayment(sales: Sale[], payment: AddPaymentResult): Sale[] {
+    let remainingPayment = payment.amount;
+    const updatedSales: Sale[] = [];
+    const outstandingSales = [...sales]
+      .filter((sale) => (sale.remainingAmount ?? 0) > 0)
+      .sort((left, right) =>
+        left.saleDate.localeCompare(right.saleDate) ||
+        left.createdAt.localeCompare(right.createdAt)
+      );
+
+    for (const sale of outstandingSales) {
+      if (remainingPayment <= 0) break;
+      const invoiceRemaining = sale.remainingAmount ?? 0;
+      const amount = Math.min(remainingPayment, invoiceRemaining);
+      const updatedSale = this.localSales.addPayment(sale.id, amount);
+      this.paymentService.recordPayment(
+        updatedSale,
+        amount,
+        payment.paymentMethod,
+        payment.paymentDate,
+        payment.notes
+      );
+      updatedSales.push(updatedSale);
+      remainingPayment -= amount;
+    }
+
+    return updatedSales;
   }
 
   private toLocalDate(date: Date): string {

@@ -5,7 +5,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { Sale } from '../../features/sales/sales.model';
+
+export interface AddPaymentDialogData {
+  invoiceNumber: string;
+  customerName: string;
+  remainingAmount?: number;
+}
 
 export interface AddPaymentResult {
   amount: number;
@@ -47,7 +52,7 @@ export class AddPaymentDialogComponent {
   constructor(
     formBuilder: FormBuilder,
     private readonly ref: MatDialogRef<AddPaymentDialogComponent, AddPaymentResult>,
-    @Inject(MAT_DIALOG_DATA) readonly data: Sale
+    @Inject(MAT_DIALOG_DATA) readonly data: AddPaymentDialogData
   ) {
     this.remainingAmount = data.remainingAmount ?? 0;
     this.form = formBuilder.nonNullable.group({

@@ -13,7 +13,7 @@ import { SaleEditDialogComponent } from '../../shared/dialogs/sale-edit-dialog.c
 import { AddPaymentDialogComponent } from '../../shared/dialogs/add-payment-dialog.component';
 import { PasswordConfirmDialogComponent } from '../../shared/dialogs/password-confirm-dialog.component';
 import { UiService } from '../../shared/services/ui.service';
-import { PaymentType, Sale, SalePayment } from './sales.model';
+import { CustomerSalesView, PaymentType, Sale, SalePayment } from './sales.model';
 import { SalesService } from './sales.service';
 
 @Component({
@@ -188,6 +188,26 @@ export class SalesComponent {
       if (!payment) return;
       try {
         this.salesService.addPayment(sale.id, payment);
+        this.ui.success('Payment added successfully.');
+      } catch (error) {
+        this.ui.error((error as Error).message);
+      }
+    });
+  }
+
+  addCustomerPayment(row: CustomerSalesView): void {
+    this.dialog.open(AddPaymentDialogComponent, {
+      data: {
+        invoiceNumber: row.totalInvoices === 1 ? row.sales[0]?.invoiceNumber ?? 'invoice' : `${row.totalInvoices} invoices`,
+        customerName: row.customerName,
+        remainingAmount: row.totalRemaining
+      },
+      width: '480px',
+      maxWidth: '95vw'
+    }).afterClosed().subscribe((payment) => {
+      if (!payment) return;
+      try {
+        this.salesService.addCustomerPayment(row.sales, payment);
         this.ui.success('Payment added successfully.');
       } catch (error) {
         this.ui.error((error as Error).message);
